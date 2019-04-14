@@ -1,3 +1,17 @@
+# 14-04-2019
+Released all step files. 
+Added tool for tool bit change (both stl and step).
+
+Bug fixes:
+bridge_2p2
+	* minor bug fix, camera holder screw holes now deeper
+	  to improve the clamping force
+	  
+head_4p1
+	* minor bug fix, chuck pulley base now smaller to prevent
+	  friction with bearing
+
+
 # 31-12-2018
 
 ## Scope
