@@ -1,3 +1,6 @@
+# 23-04-2019
+Added beta_developments directory, where we share parts not yet released and under test.
+
 # 14-04-2019
 Released all step files. 
 Added tool for tool bit change (both stl and step).
