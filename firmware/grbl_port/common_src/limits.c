@@ -220,23 +220,31 @@ void exti9_5_isr()
 #else // OPTIONAL: Software debounce limit pin routine.
   // Upon limit pin change, enable watchdog timer to create a short delay.
 #ifdef NUCLEO
-static void enable_debounce_timer(void)
+void enable_debounce_timer(void)
 {
-	/* Enable SW_DEBOUNCE_TIMER clock. */
-	rcc_periph_clock_enable(SW_DEBOUNCE_TIMER_RCC);
-	rcc_periph_reset_pulse(SW_DEBOUNCE_TIMER_RST);
-	/* Continous mode. */
-	timer_continuous_mode(SW_DEBOUNCE_TIMER);
-	timer_set_mode(SW_DEBOUNCE_TIMER, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
+  if(!nvic_get_irq_enabled(SW_DEBOUNCE_TIMER_IRQ))
+  {
+    /* Enable SW_DEBOUNCE_TIMER clock. */
+    rcc_periph_clock_enable(SW_DEBOUNCE_TIMER_RCC);
+    rcc_periph_reset_pulse(SW_DEBOUNCE_TIMER_RST);
+    /* Continous mode. */
+    timer_continuous_mode(SW_DEBOUNCE_TIMER);
+    timer_set_mode(SW_DEBOUNCE_TIMER, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
     /* ARR reload enable. */
     timer_enable_preload(SW_DEBOUNCE_TIMER);
     timer_set_prescaler(SW_DEBOUNCE_TIMER, (256*PSC_MUL_FACTOR)-1);// set to 1/8 Prescaler
-	timer_set_period(SW_DEBOUNCE_TIMER, 0X09FF);
+    timer_set_period(SW_DEBOUNCE_TIMER, 0X09FF);
+
+    timer_set_oc_mode(SW_DEBOUNCE_TIMER, TIM_OC1, TIM_OCM_FROZEN);
+    timer_set_oc_value(SW_DEBOUNCE_TIMER, TIM_OC1, 0x9F0);
 
     /* Enable SW_DEBOUNCE_TIMER Stepper Driver Interrupt. */
-    timer_enable_irq(SW_DEBOUNCE_TIMER, TIM_DIER_UIE); /** Capture/compare 1 interrupt enable */
-	nvic_enable_irq(SW_DEBOUNCE_TIMER_IRQ);
+    timer_enable_irq(SW_DEBOUNCE_TIMER, TIM_DIER_CC1IE); /** Capture/compare 1 interrupt enable */
+    nvic_enable_irq(SW_DEBOUNCE_TIMER_IRQ);
+
+    timer_set_counter(SW_DEBOUNCE_TIMER,0);
     timer_enable_counter(SW_DEBOUNCE_TIMER); /* Counter enable. */
+  }
 }
 
 void exti0_isr()
@@ -258,9 +266,9 @@ void exti9_5_isr()
 
 void SW_DEBOUNCE_TIMER_ISR()
 {
-	timer_disable_counter(SW_DEBOUNCE_TIMER);
-	nvic_clear_pending_irq(SW_DEBOUNCE_TIMER_IRQ);
-	nvic_disable_irq(SW_DEBOUNCE_TIMER_IRQ);
+  timer_disable_counter(SW_DEBOUNCE_TIMER);
+  nvic_clear_pending_irq(SW_DEBOUNCE_TIMER_IRQ);
+  nvic_disable_irq(SW_DEBOUNCE_TIMER_IRQ);
 
 #else
   ISR(LIMIT_INT_vect) { if (!(WDTCSR & (1<<WDIE))) { WDTCSR |= (1<<WDIE); } }
