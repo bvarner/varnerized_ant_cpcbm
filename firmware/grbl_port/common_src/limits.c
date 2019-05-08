@@ -488,7 +488,7 @@ void limits_go_home(uint8_t cycle_mask)
           sys.position[A_MOTOR] = (bit_istrue(settings.dir_invert_mask,bit(X_AXIS)) ? -1 : 1) * (off_axis_position) + (bit_istrue(settings.dir_invert_mask,bit(Y_AXIS)) ? -1 : 1) * (set_axis_position);
           sys.position[B_MOTOR] = (bit_istrue(settings.dir_invert_mask,bit(X_AXIS)) ? -1 : 1) * (off_axis_position) - (bit_istrue(settings.dir_invert_mask,bit(Y_AXIS)) ? -1 : 1) * (set_axis_position);
         } else {
-          sys.position[idx] = set_axis_position;
+          sys.position[idx] = (bit_istrue(settings.dir_invert_mask,bit(X_AXIS)) ? -1 : 1) * set_axis_position;
         }
       #else 
         sys.position[idx] = set_axis_position;
