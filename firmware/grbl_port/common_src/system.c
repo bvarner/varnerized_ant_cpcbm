@@ -95,7 +95,7 @@ void RESET_CONTROL_ISR()
 {
 	exti_reset_request(RESET_CONTROL_INT_vect);
 	nvic_clear_pending_irq(RESET_CONTROL_INT);
-#ifdef TEST_NUCLEO_EXTI_PINS
+#if 0//def TEST_NUCLEO_EXTI_PINS
     test_interrupt_signalling((uint32_t)2);
 #endif
 	mc_reset();
