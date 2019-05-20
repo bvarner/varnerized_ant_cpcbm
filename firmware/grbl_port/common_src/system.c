@@ -51,7 +51,7 @@ void system_init()
 	nvic_clear_pending_irq(RESET_CONTROL_INT);
 	nvic_clear_pending_irq(SAFETY_DOOR_CONTROL_INT);
 	nvic_clear_pending_irq(CYCLE_START_CONTROL_INT);
-#if SYSTEM_CONTROL_INTERRUPT_ENABLED
+#if defined(SYSTEM_CONTROL_INTERRUPT_ENABLED)
 	//exti_select_source(EXTI0, GPIOC);
 	exti_select_source(RESET_CONTROL_INT_vect, RESET_CONTROL_GPIO);
 	exti_select_source(FEED_HOLD_CONTROL_INT_vect, FEED_HOLD_CONTROL_GPIO);
@@ -95,7 +95,7 @@ void RESET_CONTROL_ISR()
 {
 	exti_reset_request(RESET_CONTROL_INT_vect);
 	nvic_clear_pending_irq(RESET_CONTROL_INT);
-#if 0//def TEST_NUCLEO_EXTI_PINS
+#ifdef TEST_NUCLEO_EXTI_PINS
     test_interrupt_signalling((uint32_t)2);
 #endif
 	mc_reset();
