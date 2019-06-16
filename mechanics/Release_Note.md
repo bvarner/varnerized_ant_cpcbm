@@ -35,3 +35,6 @@ This is a partial release that comprises all the frame related mechanical drawin
 We suggest you to print the parts as they are, because the printing position is designed to enhance the mechanical behavior.
 
 We also suggest you to print with a 0.2 mm layer thickness, 25% of infill, 1.5 mm of wall thickness and extrusion width (also called line width) of 0.5 mm. 
+
+We usually print with PLA but it's not a MUST, you may choose different materials taking in account the properties of the material you want to use. The overall rigidity is needed.
+ 
