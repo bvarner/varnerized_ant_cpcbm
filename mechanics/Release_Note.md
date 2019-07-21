@@ -1,3 +1,38 @@
+# 21-07-2019
+New parts released, list of updates:
+
+	* head_4p2 copied in release folder from beta one:
+		- previous head_4p2 splitted in head_4p2 and pulley_4p2
+		- pulley_4p2. It uses new collar for chuck pulley, if hexagon socket screw doesn't protude from the collar, replace it with a longer one. The file collects chuck pulley, turnigy pulley (3mm shaft) and mystery pulley (2.2mm shaft)
+		- spindle motor with outer diameter up to 28mm can now be mounted.
+	
+	* bridge_2p3_a and bridge_2p3_b:
+		- New version of the bridge, more rigid and stable.
+		- The *_a it is file related at the unchanged parts from previous version. *_b file it's related to the new parts. They are fully compatible with the older version. If you have printed previous version, print only the *_b parts to update.
+		- The bridge is compatible both with 4p1 and 4p2 head versions.
+		- Added protection cap.
+		- Modified camera holder, now more strong with new lock mechanism. 
+		- Added lock holes at the bottom for future features.
+		- Reinforced and updated z-motor connection.
+	
+	* z_motor_tool, useful tool to lock the z-motor shaft to the bridge.
+
+Removed parts:
+
+	* head_4p1
+	
+	* bridge_2p2
+
+All previous parts are available in The_Ant_version_1_0_0 file.
+You can find it in the download section under the "tags" tab.
+A new version of BOM is added to keep trak of all changes.
+The new pieces require a set of new parts:
+	
+	* 2 M3x10mm DIN 912 bolt
+	* 1 M3x12mm DIN 912 bolt
+	* 1 Lock collar(ring) internal diameter 6 mm, external diameter 12mm
+	* 2 O-ring inner diameter > 17mm, 1.78mm thick. Innerd diameter to be defined.
+
 # 23-04-2019
 Added beta_developments directory, where we share parts not yet released and under test.
 
