@@ -20,6 +20,10 @@
 
 /* This cpu_map file serves as a central pin mapping settings file for ST Nucleo F401 */
 
+#ifndef CPU_MAP_NUCLEOF401_H
+#define CPU_MAP_NUCLEOF401_H
+
+#include <libopencmsis/core_cm3.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/exti.h>
@@ -92,6 +96,7 @@
 #define SPINDLE_GPIO_GROUP     GPIOA
 #define SPINDLE_GPIO_AF        GPIO_AF2
 #define SPINDLE_GPIO           GPIO6
+#define SPINDLE_TIMER_BUS_FREQ rcc_apb1_frequency
 
 #define COOLANT_RCC            RCC_GPIOC
 
@@ -118,13 +123,21 @@
 #define STEP_X_DDR_RESET_MASK   (0x3<<(X_STEP_BIT*2))
 #define STEP_MASK_X       (1<<X_STEP_BIT)     // X step mask bit
 
-#define STEP_YZ_DDR       GPIOB_MODER
-#define STEP_YZ_PORT      GPIOB_ODR
+#define STEP_Y_DDR            GPIOB_MODER
+#define STEP_Y_PORT           GPIOB_ODR
 #define Y_STEP_BIT        3 // NucleoF401 Digital PB3
+#define STEP_MASK_Y_DDR       (1<<(Y_STEP_BIT*2)) // All (step bits*2) because the direction/mode has 2 bits
+#define STEP_Y_DDR_RESET_MASK (0x3<<(Y_STEP_BIT*2))
+#define STEP_MASK_Y           (1<<Y_STEP_BIT)
+
+#define STEP_Z_DDR            GPIOB_MODER
+#define STEP_Z_PORT           GPIOB_ODR
 #define Z_STEP_BIT        5 // NucleoF401 Digital PB5
-#define STEP_MASK_YZ_DDR  ((1<<(Y_STEP_BIT*2))|(1<<(Z_STEP_BIT*2))) // All (step bits*2) because the direction/mode has 2 bits
-#define STEP_YZ_DDR_RESET_MASK  ((0x3<<(Y_STEP_BIT*2))|(0x3<<(Z_STEP_BIT*2)))
-#define STEP_MASK_YZ      ((1<<Y_STEP_BIT)|(1<<Z_STEP_BIT))         // Y-Z step mask bits
+#define STEP_MASK_Z_DDR       (1<<(Z_STEP_BIT*2)) // All (step bits*2) because the direction/mode has 2 bits
+#define STEP_Z_DDR_RESET_MASK (0x3<<(Z_STEP_BIT*2))
+#define STEP_MASK_Z           (1<<Z_STEP_BIT)
+
+#define STEP_MASK (STEP_MASK_X | STEP_MASK_Z | STEP_MASK_Z)
 
 // Define step direction output pins. NOTE: All direction pins must be on the same port.
 #define DIRECTION_Z_DDR       GPIOA_MODER
@@ -134,13 +147,19 @@
 #define DIRECTION_Z_DDR_RESET_MASK  (0x3<<(Z_DIRECTION_BIT*2)) // Z DIR Mask direction bits
 #define DIRECTION_MASK_Z      (1<<Z_DIRECTION_BIT) // Z DIR MASK bit
 
-#define DIRECTION_XY_DDR       GPIOB_MODER
-#define DIRECTION_XY_PORT      GPIOB_ODR
+#define DIRECTION_X_DDR            GPIOB_MODER
+#define DIRECTION_X_PORT           GPIOB_ODR
 #define X_DIRECTION_BIT        4  // NucleoF401 Digital PB4
+#define DIRECTION_MASK_X_DDR       (1<<(X_DIRECTION_BIT*2)) // All direction bits
+#define DIRECTION_X_DDR_RESET_MASK (0x3<<(X_DIRECTION_BIT*2)) // All direction bits
+#define DIRECTION_MASK_X           (1<<X_DIRECTION_BIT)         // XY DIR MASK bits
+
+#define DIRECTION_Y_DDR            GPIOB_MODER
+#define DIRECTION_Y_PORT           GPIOB_ODR
 #define Y_DIRECTION_BIT        10 // NucleoF401 Digital PB10
-#define DIRECTION_MASK_XY_DDR  ((1<<(X_DIRECTION_BIT*2))|(1<<(Y_DIRECTION_BIT*2))) // All direction bits
-#define DIRECTION_XY_DDR_RESET_MASK  ((0x3<<(X_DIRECTION_BIT*2))|(0x3<<(Y_DIRECTION_BIT*2))) // All direction bits
-#define DIRECTION_MASK_XY      ((1<<X_DIRECTION_BIT)|(1<<Y_DIRECTION_BIT))         // XY DIR MASK bits
+#define DIRECTION_MASK_Y_DDR       (1<<(Y_DIRECTION_BIT*2)) // All direction bits
+#define DIRECTION_Y_DDR_RESET_MASK (0x3<<(Y_DIRECTION_BIT*2)) // All direction bits
+#define DIRECTION_MASK_Y           (1<<Y_DIRECTION_BIT)         // XY DIR MASK bits
 
 // Define stepper driver enable/disable output pin.
 #define STEPPERS_DISABLE_DDR        GPIOA_MODER
@@ -161,6 +180,8 @@
 #define LIMIT_X_PU_RESET_MASK    (0x3<<(X_LIMIT_BIT*2)) // X limit dir mask
 #define LIMIT_X_MASK             (1<<X_LIMIT_BIT) // X limit bits
 #define LIMIT_X_EXTI             EXTI7
+#define LIMIT_X_ISR              exti9_5_isr
+#define LIMIT_X_INT              NVIC_EXTI9_5_IRQ
 
 #define LIMIT_Y_GPIO              GPIOB
 #define LIMIT_Y_DDR               GPIOB_MODER
@@ -172,6 +193,8 @@
 #define LIMIT_Y_PU_RESET_MASK     ((0x3<<(Y_LIMIT_BIT*2))) // Y limit dir mask
 #define LIMIT_Y_MASK              (1<<Y_LIMIT_BIT) // Y limit bits
 #define LIMIT_Y_EXTI              EXTI6
+#define LIMIT_Y_ISR              exti9_5_isr
+#define LIMIT_Y_INT              NVIC_EXTI9_5_IRQ
 
 #define LIMIT_Z_GPIO              GPIOB
 #define LIMIT_Z_DDR               GPIOB_MODER
@@ -183,18 +206,17 @@
 #define LIMIT_Z_PU_RESET_MASK     ((0x3<<(Z_LIMIT_BIT*2))) // Z limit dir mask
 #define LIMIT_Z_MASK              (1<<Z_LIMIT_BIT) // Y limit bits
 #define LIMIT_Z_EXTI              EXTI0
+#define LIMIT_Z_ISR              exti0_isr
+#define LIMIT_Z_INT              NVIC_EXTI0_IRQ
 
 #define LIMIT_MASK                (LIMIT_X_MASK | LIMIT_Y_MASK | LIMIT_Z_MASK)
 //#define INVERT_LIMIT_PIN_MASK     (LIMIT_MASK)
+#define LIMIT_X_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Z_EXTI)
+#define LIMIT_Y_EXTI_CLEAR       (LIMIT_Y_EXTI)
+#define LIMIT_Z_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Z_EXTI)
 
 /* Interrupt defines for LIMIT PINS */
-#define LIMIT_INT                 NVIC_EXTI9_5_IRQ  // Pin change interrupt enable pin
-#define LIMIT_INT_vect            (EXTI6 | EXTI7)
-#define LIMIT_PCMSK               NVIC_EXTI9_5_IRQ // Pin change interrupt register
-#define LIMIT_INT_Z               NVIC_EXTI0_IRQ  // Pin change interrupt enable pin
-#define LIMIT_INT_vect_Z          (EXTI0)
-#define LIMIT_PCMSK_Z             NVIC_EXTI0_IRQ // Pin change interrupt register
-
+#define LIMIT_INT_vect            (LIMIT_X_EXTI | LIMIT_Y_EXTI | LIMIT_Z_EXTI)
 
 // Define user-control CONTROLs (cycle start, reset, feed hold) input pins.
 // NOTE: All CONTROLs pins must be on the same port and not on a port with other input pins (limits).
@@ -246,15 +268,13 @@
 #define SAFETY_DOOR_CONTROL_PIN           GPIOC_IDR
 #define SAFETY_DOOR_CONTROL_PU            GPIOC_PUPDR
 #define SAFETY_DOOR_BIT                   3 // NucleoF401 Digital PC3
+#define SAFETY_DOOR_PU_MASK               (0x1<<(SAFETY_DOOR_BIT*2)) // SAFETY_DOOR pull-up mask
+#define SAFETY_DOOR_PU_RESET_MASK         (0x3<<(SAFETY_DOOR_BIT*2)) // SAFETY_DOOR pull-up reset mask
+#define SAFETY_DOOR_MASK                  (1<<SAFETY_DOOR_BIT)
 /* Interrupt defines for SAFETY DOOR CONTROL PIN */
 #define SAFETY_DOOR_CONTROL_INT           NVIC_EXTI3_IRQ  // Pin change interrupt enable pin
 #define SAFETY_DOOR_CONTROL_INT_vect      (EXTI3) 
 #define SAFETY_DOOR_CONTROL_ISR           exti3_isr // Pin change interrupt register
-
-
-#define SAFETY_DOOR_PU_MASK               (0x1<<(SAFETY_DOOR_BIT*2)) // SAFETY_DOOR pull-up mask
-#define SAFETY_DOOR_PU_RESET_MASK         (0x3<<(SAFETY_DOOR_BIT*2)) // SAFETY_DOOR pull-up reset mask
-#define SAFETY_DOOR_MASK                  (1<<SAFETY_DOOR_BIT)
 
 #define CONTROL_INT_vect  (RESET_CONTROL_INT_vect | FEED_HOLD_CONTROL_INT_vect | CYCLE_START_CONTROL_INT_vect | SAFETY_DOOR_CONTROL_INT_vect)
 
@@ -268,15 +288,16 @@
 #define PROBE_PORT      GPIOC_ODR
 #define PROBE_PU        GPIOC_PUPDR
 #define PROBE_BIT       0 // NucleoF401 Digital PC0
-#define PROBE_PU_MASK          (0x1<<(PROBE_BIT*2)) // X limit pull-up mask
-#define PROBE_PU_RESET_MASK    (0x3<<(PROBE_BIT*2)) // X limit dir mask
+#define PROBE_PU_MASK       (0x1<<(PROBE_BIT*2))
+#define PROBE_PU_RESET_MASK (0x3<<(PROBE_BIT*2))
 #define PROBE_MASK      (1<<PROBE_BIT)
+#define PROBE_RCC           RCC_GPIOC
 
 
 // Define spindle enable and spindle direction output pins.
 #define SPINDLE_ENABLE_DDR               GPIOA_MODER
 #define SPINDLE_ENABLE_PORT              GPIOA_ODR
-#define SPINDLE_ENABLE_BIT               6 // NucleoF401 Digital Pin 6
+#define SPINDLE_ENABLE_BIT               6                           // NucleoF401 Digital Pin PA6
 #define SPINDLE_ENABLE_MASK_DDR          (1<<(SPINDLE_ENABLE_BIT*2)) // All (step bits*2) because the direction/mode has 2 bits
 #define SPINDLE_ENABLE_DDR_RESET_MASK    (0x3<<(SPINDLE_ENABLE_BIT*2))
 #define SPINDLE_ENABLE_MASK              (1<<SPINDLE_ENABLE_BIT)     // SPINDLE_ENABLE mask bit
@@ -293,15 +314,6 @@
   // Advanced Configuration Below You should not need to touch these variables
   // Set Timer up to use TIMER4B which is attached to Digital Pin 7
   #define PWM_MAX_VALUE       256.0
-  #define TCCRA_REGISTER		TCCR4A
-  #define TCCRB_REGISTER		TCCR4B
-  #define OCR_REGISTER		OCR4B
-  
-  #define COMB_BIT			COM4B1
-  #define WAVE0_REGISTER		WGM40
-  #define WAVE1_REGISTER		WGM41
-  #define WAVE2_REGISTER		WGM42
-  #define WAVE3_REGISTER		WGM43
   
   #define SPINDLE_PWM_DDR               GPIOA_MODER
   #define SPINDLE_PWM_PORT              GPIOA_ODR
@@ -336,38 +348,45 @@
 #define SET_STEP_DDR \
   do { \
     STEP_X_DDR &= ~STEP_X_DDR_RESET_MASK; \
-    STEP_YZ_DDR &= ~STEP_YZ_DDR_RESET_MASK; \
+    STEP_Y_DDR &= ~STEP_Y_DDR_RESET_MASK; \
+    STEP_Z_DDR &= ~STEP_Z_DDR_RESET_MASK; \
     STEP_X_DDR |= STEP_MASK_X_DDR; \
-    STEP_YZ_DDR |= STEP_MASK_YZ_DDR; \
+    STEP_Y_DDR |= STEP_MASK_Y_DDR; \
+    STEP_Z_DDR |= STEP_MASK_Z_DDR; \
   } while (0)
 
 #define SET_DIRECTION_DDR \
   do { \
-    DIRECTION_XY_DDR &= ~DIRECTION_XY_DDR_RESET_MASK; \
+    DIRECTION_X_DDR &= ~DIRECTION_X_DDR_RESET_MASK; \
+    DIRECTION_Y_DDR &= ~DIRECTION_Y_DDR_RESET_MASK; \
     DIRECTION_Z_DDR &= ~DIRECTION_Z_DDR_RESET_MASK; \
-    DIRECTION_XY_DDR |= DIRECTION_MASK_XY_DDR; \
+    DIRECTION_X_DDR |= DIRECTION_MASK_X_DDR; \
+    DIRECTION_Y_DDR |= DIRECTION_MASK_Y_DDR; \
     DIRECTION_Z_DDR |= DIRECTION_MASK_Z_DDR; \
   } while (0)    
 
 #define SET_STEP_BITS(stepbits) \
   do { \
     STEP_X_PORT = (STEP_X_PORT & ~STEP_MASK_X) | (stepbits & STEP_MASK_X); \
-    STEP_YZ_PORT = (STEP_YZ_PORT & ~STEP_MASK_YZ) | (stepbits & STEP_MASK_YZ); \
+    STEP_Y_PORT = (STEP_Y_PORT & ~STEP_MASK_Y) | (stepbits & STEP_MASK_Y); \
+    STEP_Z_PORT = (STEP_Z_PORT & ~STEP_MASK_Z) | (stepbits & STEP_MASK_Z); \
   } while (0)  
 
 #define SET_STEPS(stepbits) \
   do { \
     STEP_X_PORT  = (stepbits & STEP_MASK_X); \
-    STEP_YZ_PORT = (stepbits & STEP_MASK_YZ); \
+    STEP_Y_PORT = (stepbits & STEP_MASK_Y); \
+    STEP_Z_PORT = (stepbits & STEP_MASK_Z); \
   } while (0)
 	  
 #define SAVE_STEP_BITS(stepbits) \
-  do { st.step_bits = (STEP_X_PORT & ~STEP_MASK_X) | (STEP_YZ_PORT & ~STEP_MASK_YZ) | stepbits;} while (0)  	  
+  do { st.step_bits = (STEP_X_PORT & ~STEP_MASK_X) | (STEP_Y_PORT & ~STEP_MASK_Y) | (STEP_Z_PORT & ~STEP_MASK_Z) | stepbits;} while (0)
 
 #define SET_DIRECTION_BITS(dirbits) \
   do { \
     DIRECTION_Z_PORT  = (DIRECTION_Z_PORT & ~DIRECTION_MASK_Z) | (dirbits & DIRECTION_MASK_Z); \
-    DIRECTION_XY_PORT = (DIRECTION_XY_PORT & ~DIRECTION_MASK_XY) | (dirbits & DIRECTION_MASK_XY); \
+    DIRECTION_X_PORT = (DIRECTION_X_PORT & ~DIRECTION_MASK_X) | (dirbits & DIRECTION_MASK_X); \
+    DIRECTION_Y_PORT = (DIRECTION_Y_PORT & ~DIRECTION_MASK_Y) | (dirbits & DIRECTION_MASK_Y); \
   } while (0)  
 	  
 #define SET_LIMITS_RCC \
@@ -539,3 +558,6 @@ do{ \
   do { \
     COOLANT_MIST_PORT &= ~(COOLANT_MIST_MASK); \
   } while (0)
+
+
+#endif

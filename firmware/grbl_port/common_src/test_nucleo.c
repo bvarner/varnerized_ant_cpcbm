@@ -20,16 +20,50 @@
 
 #include "test_nucleo.h"
 
+//#ifdef TEST_NUCLEO_SW_DEBOUNCE_TIMER
+#include "limits.h"
+//#endif
+
 void test_initialization()
 {
-	/* Enable GPIOA clock. */
-	rcc_periph_clock_enable(RCC_GPIOA);
+  /* Enable GPIOA clock. */
+  rcc_periph_clock_enable(RCC_GPIOA);
 
-	/* Set GPIO5 (in GPIO port A) to 'output push-pull'. */
-	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
+  /* Set GPIO5 (in GPIO port A) to 'output push-pull'. */
+  gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
 }
 
+static void test_user_button_initialization(void)
+{
+  /* Enable GPIOC clock. */
+  rcc_periph_clock_enable(RCC_GPIOC);
 
+  /* Set GPIO13 (in GPIO port C) as input and set the pull-up. */
+  gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO13);
+
+  /*reset pending exti events */
+  exti_reset_request(EXTI13);
+  /*reset pending exti interrupts */
+  nvic_clear_pending_irq(NVIC_EXTI15_10_IRQ);
+  exti_select_source(EXTI13, GPIOC);
+  exti_enable_request(EXTI13);
+  exti_set_trigger(EXTI13, EXTI_TRIGGER_FALLING);
+  nvic_enable_irq(NVIC_EXTI15_10_IRQ);// Enable Limits pins Interrupt
+}
+
+void test_sw_debounce(void)
+{
+  test_user_button_initialization();
+}
+
+void exti15_10_isr(void)
+{
+  exti_reset_request(EXTI13);
+  nvic_clear_pending_irq(NVIC_EXTI15_10_IRQ);
+
+  //test_interrupt_signalling(1);
+  enable_debounce_timer();
+}
 
 
 void test_interrupt_signalling(uint32_t num_signals)

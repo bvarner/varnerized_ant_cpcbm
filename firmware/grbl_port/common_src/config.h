@@ -32,10 +32,14 @@
 
 
 // Default settings. Used when resetting EEPROM. Change to desired name in defaults.h
-#define DEFAULTS_CPCB
+#ifndef DEFAULTS_DEFINED
+#define DEFAULTS_GENERIC
+#endif
 
 // Default pwm spindle parameters. Used when resetting EEPROM. Change to desired name in pwm_spindle_params.h
-#define PWM_SPINDLE_PARAMS_AFRO20
+#ifndef PWM_PARAMS_DEFINED
+#define PWM_SPINDLE_PARAMS_GENERIC
+#endif
 
 // Serial baud rate
 #define BAUD_RATE 115200
@@ -43,7 +47,6 @@
 // Default cpu mappings. Grbl officially supports the Arduino Uno only. Other processor types
 // may exist from user-supplied templates or directly user-defined in cpu_map.h
 //#define CPU_MAP_ATMEGA328P // Arduino Uno CPU
-#define NUCLEO_F401 // Nucleo F401 board
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
@@ -162,7 +165,7 @@
 // defined at (http://corexy.com/theory.html). Motors are assumed to positioned and wired exactly as
 // described, if not, motions may move in strange directions. Grbl assumes the CoreXY A and B motors
 // have the same steps per mm internally.
-#define COREXY // Default disabled. Uncomment to enable.
+// #define COREXY // Default disabled. Uncomment to enable.
 
 // Inverts pin logic of the control command pins. This essentially means when this option is enabled
 // you can use normally-closed switches, rather than the default normally-open switches.

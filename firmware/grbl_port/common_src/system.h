@@ -39,8 +39,8 @@
 
 // Alarm executor bit map.
 // NOTE: EXEC_CRITICAL_EVENT is an optional flag that must be set with an alarm flag. When enabled,
-// this halts Grbl into an infinite loop until the user aknowledges the problem and issues a soft-
-// reset command. For example, a hard limit event needs this type of halt and aknowledgement.
+// this halts Grbl into an infinite loop until the user acknowledges the problem and issues a soft-
+// reset command. For example, a hard limit event needs this type of halt and acknowledgment.
 #define EXEC_CRITICAL_EVENT     bit(0) // bitmask 00000001 (SPECIAL FLAG. See NOTE:)
 #define EXEC_ALARM_HARD_LIMIT   bit(1) // bitmask 00000010
 #define EXEC_ALARM_SOFT_LIMIT   bit(2) // bitmask 00000100

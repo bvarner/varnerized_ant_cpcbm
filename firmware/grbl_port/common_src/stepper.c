@@ -245,7 +245,7 @@ void st_wake_up()
     #ifdef NUCLEO
     timer_clear_flag(STEPPER_MAIN_TIMER, 0x1FFF);
     /* Enable MAIN Stepper Driver Interrupt. */
-    timer_enable_irq(STEPPER_MAIN_TIMER, TIM_DIER_UIE); /** Capture/compare 1 interrupt enable */
+    timer_enable_irq(STEPPER_MAIN_TIMER, TIM_DIER_UIE);
     timer_enable_counter(STEPPER_MAIN_TIMER); /* Counter enable. */
     timer_generate_event(STEPPER_MAIN_TIMER, TIM_EGR_UG);
     #else

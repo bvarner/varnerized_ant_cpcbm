@@ -23,10 +23,14 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/exti.h>
+#include <libopencm3/cm3/nvic.h>
+#include <libopencmsis/core_cm3.h>
 
 void test_initialization(void);
-
+void test_sw_debounce(void);
 void test_interrupt_signalling(uint32_t num_signals);
 void test_led_toggle(void);
+
 
 #endif /* _TEST_NUCLEO_H_ */

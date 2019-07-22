@@ -49,20 +49,21 @@ void limits_init()
     if (bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE)) {
     	/*reset pending exti events */
     	exti_reset_request(LIMIT_INT_vect);
-    	exti_reset_request(LIMIT_INT_vect_Z);
     	/*reset pending exti interrupts */
-    	nvic_clear_pending_irq(LIMIT_INT);
-    	nvic_clear_pending_irq(LIMIT_INT_Z);
+    	nvic_clear_pending_irq(LIMIT_X_INT);
+    	nvic_clear_pending_irq(LIMIT_Y_INT);
+    	nvic_clear_pending_irq(LIMIT_Z_INT);
     	exti_select_source(LIMIT_X_EXTI, LIMIT_X_GPIO);
     	exti_select_source(LIMIT_Y_EXTI, LIMIT_Y_GPIO);
     	exti_select_source(LIMIT_Z_EXTI, LIMIT_Z_GPIO);
     	exti_enable_request(LIMIT_INT_vect);
 		exti_set_trigger(LIMIT_INT_vect, EXTI_TRIGGER_FALLING);
-		nvic_enable_irq(LIMIT_INT);// Enable Limits pins Interrupt
-    	exti_enable_request(LIMIT_INT_vect_Z);
-		exti_set_trigger(LIMIT_INT_vect_Z, EXTI_TRIGGER_FALLING);
-		nvic_enable_irq(LIMIT_INT_Z);// Enable Limits pins Interrupt
-	} else {
+        nvic_enable_irq(LIMIT_X_INT);// Enable Limits pins Interrupt
+        nvic_enable_irq(LIMIT_Y_INT);// Enable Limits pins Interrupt
+        nvic_enable_irq(LIMIT_Z_INT);// Enable Limits pins Interrupt
+    }
+    else 
+    {
 		limits_disable(); 
 	}
 
@@ -101,8 +102,13 @@ void limits_init()
 void limits_disable()
 {
 #ifdef NUCLEO
-	nvic_disable_irq(LIMIT_INT);// Disable Limits pins Interrupt
-	nvic_disable_irq(LIMIT_INT_Z);// Disable Limits pins Interrupt
+    /* Disable Limits pins Interrupt */
+    nvic_disable_irq(LIMIT_X_INT);
+    nvic_disable_irq(LIMIT_Y_INT);
+    nvic_disable_irq(LIMIT_Z_INT);
+    nvic_clear_pending_irq(LIMIT_X_INT);
+    nvic_clear_pending_irq(LIMIT_Y_INT);
+    nvic_clear_pending_irq(LIMIT_Z_INT);
 #else
   LIMIT_PCMSK &= ~LIMIT_MASK;  // Disable specific pins of the Pin Change Interrupt
   PCICR &= ~(1 << LIMIT_INT);  // Disable Pin Change Interrupt
@@ -154,10 +160,10 @@ uint8_t limits_get_state()
 // your e-stop switch to the Arduino reset pin, since it is the most correct way to do this.
 #ifndef ENABLE_SOFTWARE_DEBOUNCE
 #ifdef NUCLEO
-void exti0_isr()
+void LIMIT_X_ISR()
 {
-	exti_reset_request(LIMIT_INT_vect_Z);
-	nvic_clear_pending_irq(NVIC_EXTI0_IRQ);
+    exti_reset_request(LIMIT_X_EXTI_CLEAR);
+    nvic_clear_pending_irq(LIMIT_X_INT);
 #ifdef TEST_NUCLEO_EXTI_PINS
     test_interrupt_signalling((uint32_t)10);
 #endif
@@ -182,16 +188,44 @@ void exti0_isr()
       }
     }
 }
-
-void exti9_5_isr()
-{
-	/* Clear interrupt request */
-	exti_reset_request(LIMIT_INT_vect);
-	nvic_clear_pending_irq(NVIC_EXTI9_5_IRQ);
-#else
-  ISR(LIMIT_INT_vect) // DEFAULT: Limit pin change interrupt process. {
 #endif
 
+#if LIMIT_Y_INT != LIMIT_X_INT
+void LIMIT_Y_ISR()
+{
+    exti_reset_request(LIMIT_Y_EXTI_CLEAR);
+    nvic_clear_pending_irq(LIMIT_Y_INT);
+#ifdef TEST_NUCLEO_EXTI_PINS
+    test_interrupt_signalling((uint32_t)10);
+#endif
+
+    // Ignore limit switches if already in an alarm state or in-process of executing an alarm.
+    // When in the alarm state, Grbl should have been reset or will force a reset, so any pending
+    // moves in the planner and serial buffers are all cleared and newly sent blocks will be
+    // locked out until a homing cycle or a kill lock command. Allows the user to disable the hard
+    // limit setting if their limits are constantly triggering after a reset and move their axes.
+    if (sys.state != STATE_ALARM) {
+      if (!(sys_rt_exec_alarm)) {
+        #ifdef HARD_LIMIT_FORCE_STATE_CHECK
+          // Check limit pin state.
+          if (limits_get_state()) {
+            mc_reset(); // Initiate system kill.
+            bit_true_atomic(sys_rt_exec_alarm, (EXEC_ALARM_HARD_LIMIT|EXEC_CRITICAL_EVENT)); // Indicate hard limit critical event
+          }
+        #else
+          mc_reset(); // Initiate system kill.
+          bit_true_atomic(sys_rt_exec_alarm, (EXEC_ALARM_HARD_LIMIT|EXEC_CRITICAL_EVENT)); // Indicate hard limit critical event
+        #endif
+      }
+    }
+}
+#endif
+
+#if (LIMIT_Z_INT != LIMIT_X_INT) && (LIMIT_Z_INT != LIMIT_Y_INT) 
+void LIMIT_Z_ISR()
+{
+    exti_reset_request(LIMIT_Z_EXTI_CLEAR);
+    nvic_clear_pending_irq(LIMIT_Z_INT);
 #ifdef TEST_NUCLEO_EXTI_PINS
     test_interrupt_signalling((uint32_t)5);
 #endif
@@ -215,7 +249,8 @@ void exti9_5_isr()
         #endif
       }
     }
-  }  
+}
+#endif
 //TODO: adjust software debounce isr routine for nucleo 
 #else // OPTIONAL: Software debounce limit pin routine.
   // Upon limit pin change, enable watchdog timer to create a short delay.
@@ -247,22 +282,34 @@ void enable_debounce_timer(void)
   }
 }
 
-void exti0_isr()
+void LIMIT_X_ISR()
 {
     /* Clear interrupt request */
-    exti_reset_request(LIMIT_INT_vect_Z);
-    nvic_clear_pending_irq(NVIC_EXTI0_IRQ);
+    exti_reset_request(LIMIT_X_EXTI_CLEAR);
+    nvic_clear_pending_irq(LIMIT_X_INT);
 
     enable_debounce_timer();
 }
-void exti9_5_isr()
+
+#if LIMIT_Y_INT != LIMIT_X_INT
+void LIMIT_Y_ISR()
 {
-    /* Clear interrupt request */
-    exti_reset_request(LIMIT_INT_vect);
-    nvic_clear_pending_irq(NVIC_EXTI9_5_IRQ);
+    exti_reset_request(LIMIT_Y_EXTI_CLEAR);
+    nvic_clear_pending_irq(LIMIT_Y_INT);
 
     enable_debounce_timer();
 }
+#endif
+
+#if (LIMIT_Z_INT != LIMIT_X_INT) && (LIMIT_Z_INT != LIMIT_Y_INT) 
+void LIMIT_Z_ISR()
+{
+    exti_reset_request(LIMIT_Z_EXTI_CLEAR);
+    nvic_clear_pending_irq(LIMIT_Z_INT);
+
+    enable_debounce_timer();
+}
+#endif
 
 void SW_DEBOUNCE_TIMER_ISR()
 {
@@ -433,11 +480,8 @@ void limits_go_home(uint8_t cycle_mask)
           break;
         } 
       }
-#ifdef NUCLEO
-    } while ((STEP_MASK_X | STEP_MASK_YZ) & axislock);
-#else
     } while (STEP_MASK & axislock);
-#endif
+
     st_reset(); // Immediately force kill steppers and reset step segment buffer.
     plan_reset(); // Reset planner buffer to zero planner current position and to clear previous motions.
 

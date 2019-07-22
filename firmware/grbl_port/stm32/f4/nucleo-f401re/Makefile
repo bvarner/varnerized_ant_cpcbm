@@ -26,7 +26,7 @@ SRC_DIR ?= ./
 COMMON_SRC_DIR ?= ../../../common_src/
 MKDIR_P = mkdir -p
 
-SRCS := reset_vector.c flash.c   
+SRCS := reset_vector.c flash.c
 
 COMMON_SRCS := coolant_control.c \
                nuts_bolts.c \
@@ -54,7 +54,8 @@ OBJS += $(COMMON_OBJS)
 
 ###############################################################################
 # C & C++ preprocessor common flags
-CPPFLAGS  += -I. -I./cpu_map -I./defaults -I$(COMMON_SRC_DIR)
+CPPFLAGS  += -I. -I./cpu_map -I$(COMMON_SRC_DIR) -I$(COMMON_SRC_DIR)defaults  -I$(COMMON_SRC_DIR)pwm_spindle_parameters
+CPPFLAGS  += -DNUCLEO_F401
 
 ###############################################################################
 # Used libraries

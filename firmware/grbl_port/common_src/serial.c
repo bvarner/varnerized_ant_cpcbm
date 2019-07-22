@@ -72,6 +72,8 @@ void serial_init()
 	/* Enable GPIOD clock for SERIAL_USART. */
 	rcc_periph_clock_enable(SERIAL_USART_RCC_GPIO);
 
+	rcc_periph_reset_pulse(RST_USART2);
+
 	/* Enable clocks for SERIAL_USART. */
 	rcc_periph_clock_enable(SERIAL_USART_RCC);
 	
@@ -81,6 +83,7 @@ void serial_init()
 	/* Setup SERIAL_USART TX pin as alternate function. */
 	gpio_set_af(SERIAL_USART_GPIO_GROUP, SERIAL_USART_GPIO_AF, SERIAL_USART_GPIOS);
 	
+	usart_disable(SERIAL_USART);
 	/* Setup SERIAL_USART parameters. */
 	// Set baud rate
 	usart_set_baudrate(SERIAL_USART, BAUD_RATE);
@@ -99,6 +102,7 @@ void serial_init()
 	/* Finally enable the USART. */
 	usart_enable(SERIAL_USART);
 	
+	nvic_clear_pending_irq(SERIAL_USART_IRQ);
 	nvic_enable_irq(SERIAL_USART_IRQ);
 	
 #else
@@ -182,7 +186,7 @@ void SERIAL_USART_ISR(void)
 #ifndef USE_RX_DMA
 	if(((USART_SR(SERIAL_USART) & USART_SR_RXNE)  & USART_CR1(SERIAL_USART)) != 0)
 	{		
-	  uint8_t data = (uint8_t)USART_DR(SERIAL_USART) & USART_DR_MASK;
+    uint8_t data = (uint8_t)(usart_recv(SERIAL_USART));
 	  uint32_t next_head;
 	  
 	  // Pick off realtime command characters directly from the serial stream. These characters are
@@ -210,7 +214,7 @@ void SERIAL_USART_ISR(void)
 		uint8_t tail = serial_tx_buffer_tail; // Temporary serial_tx_buffer_tail (to optimize for volatile)
 
 		// Send a byte from the buffer	
-		USART_DR(SERIAL_USART) = (((uint16_t)serial_tx_buffer[tail]) & USART_DR_MASK);
+        usart_send(SERIAL_USART, ((uint16_t)serial_tx_buffer[tail]));
 		// Update tail position
 		tail++;
 		if (tail == TX_BUFFER_SIZE) { tail = 0; }
@@ -320,7 +324,7 @@ void serial_rx_dma_init(void)
 	dma_disable_double_buffer_mode(SERIAL_DMA, SERIAL_DMA_STREAM);
 	dma_set_dma_flow_control(SERIAL_DMA, SERIAL_DMA_STREAM); //unsure about this
 	dma_enable_direct_mode(SERIAL_DMA, SERIAL_DMA_STREAM);
-	dma_set_peripheral_address(SERIAL_DMA, SERIAL_DMA_STREAM, (uint32_t)(SERIAL_USART_BASE+0x04));
+  dma_set_peripheral_address(SERIAL_DMA, SERIAL_DMA_STREAM, (uint32_t)(&(USART_DR(SERIAL_USART))));
 	dma_set_memory_address(SERIAL_DMA, SERIAL_DMA_STREAM, (uint32_t)(&serial_rx_dma_data));
 	dma_set_number_of_data(SERIAL_DMA, SERIAL_DMA_STREAM, (uint16_t)1);
 
@@ -338,7 +342,7 @@ void serial_rx_dma_init(void)
 void SERIAL_DMA_ISR()
 {
 	/* Clear transfer complete interrupt flag */
-	DMA_HIFCR(SERIAL_DMA) = (DMA_TCIF << DMA_ISR_OFFSET(SERIAL_DMA_STREAM));
+  dma_clear_interrupt_flags(SERIAL_DMA, SERIAL_DMA_STREAM, DMA_TCIF);
 
     switch (serial_rx_dma_data)
     {
