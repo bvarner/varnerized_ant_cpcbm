@@ -44,26 +44,36 @@ void system_init()
 	exti_reset_request(RESET_CONTROL_INT_vect);
 	exti_reset_request(FEED_HOLD_CONTROL_INT_vect);
 	exti_reset_request(CYCLE_START_CONTROL_INT_vect);
+    #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
 	exti_reset_request(SAFETY_DOOR_CONTROL_INT_vect);
-
+    #endif
 	/*reset pending exti interrupts */
 	nvic_clear_pending_irq(FEED_HOLD_CONTROL_INT);
 	nvic_clear_pending_irq(RESET_CONTROL_INT);
-	nvic_clear_pending_irq(SAFETY_DOOR_CONTROL_INT);
 	nvic_clear_pending_irq(CYCLE_START_CONTROL_INT);
 #if defined(SYSTEM_CONTROL_INTERRUPT_ENABLED)
+#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
+    nvic_clear_pending_irq(SAFETY_DOOR_CONTROL_INT);
+    #endif
+
 	//exti_select_source(EXTI0, GPIOC);
 	exti_select_source(RESET_CONTROL_INT_vect, RESET_CONTROL_GPIO);
 	exti_select_source(FEED_HOLD_CONTROL_INT_vect, FEED_HOLD_CONTROL_GPIO);
 	exti_select_source(CYCLE_START_CONTROL_INT_vect, CYCLE_START_CONTROL_GPIO);
+    #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
 	exti_select_source(SAFETY_DOOR_CONTROL_INT_vect, SAFETY_DOOR_CONTROL_GPIO);
+    #endif
+
 	exti_enable_request(CONTROL_INT_vect);
 	exti_set_trigger(CONTROL_INT_vect, EXTI_TRIGGER_FALLING);
 
 	nvic_enable_irq(RESET_CONTROL_INT);// Enable control pin Interrupt
 	nvic_enable_irq(FEED_HOLD_CONTROL_INT);// Enable control pin Interrupt
 	nvic_enable_irq(CYCLE_START_CONTROL_INT);// Enable control pin Interrupt
+    #ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
 	nvic_enable_irq(SAFETY_DOOR_CONTROL_INT);// Enable control pin Interrupt
+    #endif
+
 #ifdef TEST_NUCLEO_EXTI_PINS
     test_initialization();
 #endif
@@ -101,6 +111,8 @@ void RESET_CONTROL_ISR()
 	mc_reset();
 }
 
+
+#ifdef ENABLE_SAFETY_DOOR_INPUT_PIN
 void SAFETY_DOOR_CONTROL_ISR()
 {
 	exti_reset_request(SAFETY_DOOR_CONTROL_INT_vect);
@@ -110,6 +122,7 @@ void SAFETY_DOOR_CONTROL_ISR()
 #endif
     bit_true(sys_rt_exec_state, EXEC_SAFETY_DOOR);
 }
+#endif
 
 void CYCLE_START_CONTROL_ISR()
 {

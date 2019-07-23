@@ -40,13 +40,14 @@ void limits_init()
 	SET_LIMITS_RCC;
 
 	SET_LIMITS_DDR;  // Set as input pins
-	#ifdef DISABLE_LIMIT_PIN_PULL_UP
+#ifdef DISABLE_LIMIT_PIN_PULL_UP
     UNSET_LIMITS_PU; // Normal low operation. Requires external pull-down.
-    #else
+#else
     SET_LIMITS_PU;   // Enable internal pull-up resistors. Normal high operation.
-    #endif
+#endif
 
-    if (bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE)) {
+  if (bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE))
+  {
     	/*reset pending exti events */
     	exti_reset_request(LIMIT_INT_vect);
     	/*reset pending exti interrupts */
@@ -74,11 +75,11 @@ void limits_init()
 #else
   LIMIT_DDR &= ~(LIMIT_MASK); // Set as input pins
 
-  #ifdef DISABLE_LIMIT_PIN_PULL_UP
+#ifdef DISABLE_LIMIT_PIN_PULL_UP
     LIMIT_PORT &= ~(LIMIT_MASK); // Normal low operation. Requires external pull-down.
-  #else
+#else
     LIMIT_PORT |= (LIMIT_MASK);  // Enable internal pull-up resistors. Normal high operation.
-  #endif
+#endif
 
   if (bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE)) {
     LIMIT_PCMSK |= LIMIT_MASK; // Enable specific pins of the Pin Change Interrupt

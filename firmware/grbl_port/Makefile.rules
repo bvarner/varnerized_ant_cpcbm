@@ -77,11 +77,13 @@ SCRIPT_DIR	= $(OPENCM3_DIR)/scripts
 
 ###############################################################################
 # C flags
+## override is needed to compile using script passed flags.
 
-CFLAGS		+= -O0 -g
-CFLAGS		+= -Wextra -Wshadow -Wimplicit-function-declaration
-CFLAGS		+= -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
-CFLAGS		+= -fno-common -ffunction-sections -fdata-sections
+override CFLAGS		+= -O0 -g
+override CFLAGS		+= -Wextra -Wshadow -Wimplicit-function-declaration
+override CFLAGS		+= -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
+override CFLAGS		+= -fno-common
+override CFLAGS		+= -ffunction-sections -fdata-sections
 
 ###############################################################################
 # C++ flags
