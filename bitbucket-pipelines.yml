@@ -20,7 +20,7 @@ pipelines:
           - cd scripts
           - chmod +x configurable_compile_script.py
           - ./configurable_compile_script.py -bui $BITBUCKET_BUILD_NUMBER
-          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"$BITBUCKET_CLONE_DIR/firmware/scripts/artifacts_built/*.bin"
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"$BITBUCKET_CLONE_DIR/firmware/scripts/artifacts_built/$(cd ./artifacts_built/ && ls -1 *.bin)"
 
 definitions:
     caches:
