@@ -102,6 +102,7 @@ void serial_init()
 	/* Finally enable the USART. */
 	usart_enable(SERIAL_USART);
 	
+	nvic_clear_pending_irq(NVIC_DMA1_STREAM5_IRQ);
 	nvic_clear_pending_irq(SERIAL_USART_IRQ);
 	nvic_enable_irq(SERIAL_USART_IRQ);
 	

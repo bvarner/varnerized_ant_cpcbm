@@ -161,7 +161,7 @@ void report_feedback_message(uint8_t message_code)
 // Welcome message
 void report_init_message()
 {
-  printPgmString(PSTR("\r\nGRBL Open CM3 " GOCM3_VERSION " ['$' for help]\r\n"));
+  printPgmString(PSTR("\r\nGrblocm3 " GOCM3_VERSION " ['$' for help]\r\n"));
 }
 
 // Grbl help message
