@@ -211,9 +211,9 @@
 
 #define LIMIT_MASK                (LIMIT_X_MASK | LIMIT_Y_MASK | LIMIT_Z_MASK)
 //#define INVERT_LIMIT_PIN_MASK     (LIMIT_MASK)
-#define LIMIT_X_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Z_EXTI)
-#define LIMIT_Y_EXTI_CLEAR       (LIMIT_Y_EXTI)
-#define LIMIT_Z_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Z_EXTI)
+#define LIMIT_X_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Y_EXTI)
+#define LIMIT_Y_EXTI_CLEAR       (LIMIT_Y_EXTI | LIMIT_X_EXTI)
+#define LIMIT_Z_EXTI_CLEAR       (LIMIT_Z_EXTI)
 
 /* Interrupt defines for LIMIT PINS */
 #define LIMIT_INT_vect            (LIMIT_X_EXTI | LIMIT_Y_EXTI | LIMIT_Z_EXTI)
