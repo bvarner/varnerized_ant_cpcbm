@@ -304,10 +304,18 @@
 
 #define SPINDLE_DIRECTION_DDR               GPIOA_MODER
 #define SPINDLE_DIRECTION_PORT              GPIOA_ODR
-#define SPINDLE_DIRECTION_BIT               5 // NucleoF401 Digital Pin 5
+#define SPINDLE_DIRECTION_BIT               12 // NucleoF401 Digital Pin 12
 #define SPINDLE_DIRECTION_MASK_DDR          (1<<(SPINDLE_DIRECTION_BIT*2)) // All (step bits*2) because the direction/mode has 2 bits
 #define SPINDLE_DIRECTION_DDR_RESET_MASK    (0x3<<(SPINDLE_DIRECTION_BIT*2))
 #define SPINDLE_DIRECTION_MASK              (1<<SPINDLE_DIRECTION_BIT)     // SPINDLE_DIRECTION_BIT mask bit
+
+
+#define HEARTBEAT_DDR               GPIOA_MODER
+#define HEARTBEAT_PORT              GPIOA_ODR
+#define HEARTBEAT_BIT               5 // NucleoF401 Digital Pin 5
+#define HEARTBEAT_MASK_DDR          (1<<(HEARTBEAT_BIT*2)) // All (step bits*2) because the direction/mode has 2 bits
+#define HEARTBEAT_DDR_RESET_MASK    (0x3<<(HEARTBEAT_BIT*2))
+#define HEARTBEAT_MASK              (1<<HEARTBEAT_BIT)     // SPINDLE_DIRECTION_BIT mask bit
 
 // Start of PWM & Stepper Enabled Spindle
 #ifdef VARIABLE_SPINDLE
@@ -559,5 +567,16 @@ do{ \
     COOLANT_MIST_PORT &= ~(COOLANT_MIST_MASK); \
   } while (0)
 
+
+#define SET_HEARTBEAT_DDR \
+  do { \
+    HEARTBEAT_DDR &= ~HEARTBEAT_DDR_RESET_MASK; \
+    HEARTBEAT_DDR |= HEARTBEAT_MASK_DDR; \
+  } while (0)
+
+#define TOGGLE_HEARTBEAT_BIT \
+  do { \
+    HEARTBEAT_PORT ^= HEARTBEAT_MASK; \
+  } while (0)
 
 #endif

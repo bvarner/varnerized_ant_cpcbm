@@ -93,3 +93,52 @@ void test_led_toggle(void)
 	else
 		gpio_set(GPIOA, GPIO5);	/* LED on */
 }
+
+
+#define HEARTBEAT_MAX_DELAY        500000
+#define HEARTBEAT_FAULT_MAX_DELAY  200000
+// Initialize Heart Beat variable to normal slow delay, so the led should blink slowly
+uint32_t heartbeat_delay = HEARTBEAT_MAX_DELAY;
+
+void test_heartbeat()
+{
+	if(heartbeat_delay == 0)
+	{
+        TOGGLE_HEARTBEAT_BIT;
+        heartbeat_delay = HEARTBEAT_MAX_DELAY;
+    }
+    else
+    {
+        heartbeat_delay--;
+    }
+}
+
+void test_fault_heartbeat()
+{
+	if(heartbeat_delay == 0)
+	{
+        TOGGLE_HEARTBEAT_BIT;
+        heartbeat_delay = HEARTBEAT_FAULT_MAX_DELAY;
+    }
+    else
+    {
+        heartbeat_delay--;
+    }
+}
+
+void nmi_handler(void)
+{
+    while(true)
+    {
+        test_fault_heartbeat();
+    }
+}
+
+void hard_fault_handler(void)
+{
+    while(true)
+    {
+        test_fault_heartbeat();
+    }
+}
+

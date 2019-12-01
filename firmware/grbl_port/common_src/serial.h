@@ -25,10 +25,10 @@
 
 
 #ifndef RX_BUFFER_SIZE
-  #define RX_BUFFER_SIZE 1024
+  #define RX_BUFFER_SIZE 2048
 #endif
 #ifndef TX_BUFFER_SIZE
-  #define TX_BUFFER_SIZE 64
+  #define TX_BUFFER_SIZE 256
 #endif
 
 #define SERIAL_NO_DATA 0xff
@@ -56,11 +56,11 @@ uint8_t serial_read(void);
 void serial_reset_read_buffer(void);
 
 // Returns the number of bytes used in the RX serial buffer.
-uint8_t serial_get_rx_buffer_count(void);
+uint32_t serial_get_rx_buffer_count(void);
 
 // Returns the number of bytes used in the TX serial buffer.
 // NOTE: Not used except for debugging and ensuring no TX bottlenecks.
-uint8_t serial_get_tx_buffer_count(void);
+uint32_t serial_get_tx_buffer_count(void);
 
 
 #ifdef USE_RX_DMA

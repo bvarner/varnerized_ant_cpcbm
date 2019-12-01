@@ -37,6 +37,7 @@
 #include "cpu_map.h"
 // Define standard libraries used by Grbl.
 #ifdef NUCLEO
+#include "test_nucleo.h"
 #elif defined(CPU_MAP_ATMEGA328P) || defined(CPU_MAP_ATMEGA2560)
 #include <avr/io.h>
 #include <avr/pgmspace.h>

@@ -34,13 +34,6 @@
 #define PSTR(s) s
 #endif
 
-#ifdef NUCLEO
-void hard_fault_handler(void)
-{
-	printPgmString("Hard Fault Handler");
-}
-#endif
-
 
 // Handles the primary confirmation protocol response for streaming interfaces and human-feedback.
 // For every incoming line, this method responds with an 'ok' for a successful command or an 
