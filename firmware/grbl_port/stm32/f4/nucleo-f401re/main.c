@@ -97,6 +97,7 @@ int main(void)
     probe_init();
     plan_reset(); // Clear block buffer and planner variables
     st_reset(); // Clear stepper subsystem variables.
+    SET_HEARTBEAT_DDR;
 
 #ifdef VARIABLE_SPINDLE
     /* Check if a minimal pwm needs to be given to the spindle at startup
