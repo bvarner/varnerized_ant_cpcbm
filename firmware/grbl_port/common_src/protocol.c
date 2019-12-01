@@ -61,7 +61,6 @@ static void protocol_execute_line(void)
   }
 }
 
-
 /* 
   GRBL PRIMARY LOOP:
 */
@@ -156,6 +155,7 @@ void protocol_main_loop()
           }
         }
       }
+      test_heartbeat();
     }
     
     // If there are no more characters in the serial read buffer to be processed and executed,
@@ -223,6 +223,7 @@ void protocol_execute_realtime()
 //           report_realtime_status();
 //           bit_false_atomic(sys_rt_exec_state,EXEC_STATUS_REPORT); 
 //         }
+          test_fault_heartbeat();
       } while (bit_isfalse(sys_rt_exec_state,EXEC_RESET));
     }
     bit_false_atomic(sys_rt_exec_alarm,0xFF); // Clear all alarm flags
@@ -368,6 +369,7 @@ void protocol_execute_realtime()
       }
     }
   }
+  test_heartbeat();
 
   } while(sys.suspend); // Check for system suspend state before exiting.
   

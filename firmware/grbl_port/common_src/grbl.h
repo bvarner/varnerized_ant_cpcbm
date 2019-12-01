@@ -32,6 +32,7 @@
 #ifdef NUCLEO
 #include <libopencm3/cm3/nvic.h>
 #include <libopencmsis/core_cm3.h>
+#include "test_nucleo.h"
 #elif defined(CPU_MAP_ATMEGA328P) || defined(CPU_MAP_ATMEGA2560)
 #include <avr/io.h>
 #include <avr/pgmspace.h>

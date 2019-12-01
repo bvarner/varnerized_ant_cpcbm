@@ -21,12 +21,13 @@
 #ifndef _TEST_NUCLEO_H_
 #define _TEST_NUCLEO_H_
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
+#include <grbl.h>
 
 void test_initialization(void);
 
 void test_interrupt_signalling(uint32_t num_signals);
 void test_led_toggle(void);
+void test_heartbeat(void);
+void test_fault_heartbeat(void);
 
 #endif /* _TEST_NUCLEO_H_ */
