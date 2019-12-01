@@ -51,7 +51,7 @@ void system_init()
 	nvic_clear_pending_irq(RESET_CONTROL_INT);
 	nvic_clear_pending_irq(SAFETY_DOOR_CONTROL_INT);
 	nvic_clear_pending_irq(CYCLE_START_CONTROL_INT);
-#if SYSTEM_CONTROL_INTERRUPT_ENABLED
+#if defined(SYSTEM_CONTROL_INTERRUPT_ENABLED)
 	//exti_select_source(EXTI0, GPIOC);
 	exti_select_source(RESET_CONTROL_INT_vect, RESET_CONTROL_GPIO);
 	exti_select_source(FEED_HOLD_CONTROL_INT_vect, FEED_HOLD_CONTROL_GPIO);
