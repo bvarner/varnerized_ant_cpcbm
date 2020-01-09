@@ -34,7 +34,6 @@
 #define PSTR(s) s
 #endif
 
-
 // Handles the primary confirmation protocol response for streaming interfaces and human-feedback.
 // For every incoming line, this method responds with an 'ok' for a successful command or an 
 // 'error:'  to indicate some error event with the line or some critical system error during 
@@ -154,7 +153,7 @@ void report_feedback_message(uint8_t message_code)
 // Welcome message
 void report_init_message()
 {
-  printPgmString(PSTR("\r\nGrblocm3 " GOCM3_VERSION " ['$' for help]\r\n"));
+  printPgmString(PSTR("\r\nGrbl_ocm3 " GOCM3_VERSION " ['$' for help]\r\n"));
 }
 
 // Grbl help message

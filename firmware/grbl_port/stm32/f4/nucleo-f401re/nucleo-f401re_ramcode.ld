@@ -24,9 +24,10 @@
 /* Define memory regions. */
 MEMORY
 {
-	rom (rx) : ORIGIN = 0x08000000, LENGTH = 512K
-	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 64K
-	ram_txt (rwx) : ORIGIN = 0x20010000, LENGTH = 32K
+	rom (rx) : ORIGIN = 0x08000000, LENGTH = 32K
+	rom2 (rx) : ORIGIN = 0x08010000, LENGTH = 448K
+	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 32K
+	ram_txt (rwx) : ORIGIN = 0x20008000, LENGTH = 64K
 }
 
 /* Enforce emmition of the vector table. */
@@ -48,13 +49,12 @@ SECTIONS
 	_ramcode_loadaddr = LOADADDR(.ramcode);
 	
 	.text : {
-		
 		*(.text*)	/* Program code */
 		. = ALIGN(4);
 		*(.rodata*)	/* Read-only data */
 		. = ALIGN(4);
-	} >rom
-
+	} >rom2
+	
 	/*
 	 * Another section used by C++ stuff, appears when using newlib with
 	 * 64bit (long long) printf support
@@ -76,7 +76,7 @@ SECTIONS
 		*(.data*)	/* Read-write initialized data */
 		. = ALIGN(4);
 		_edata = .;
-	} >ram AT >rom
+	} >ram AT >rom2
 	_data_loadaddr = LOADADDR(.data);
 
 	.bss : {

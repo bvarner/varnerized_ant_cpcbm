@@ -100,10 +100,10 @@
 
 #define COOLANT_RCC            RCC_GPIOC
 
-#define MAIN_SECTOR 6
-#define COPY_SECTOR 7
-#define EFLASH_MAIN_BASE_ADDRESS          0x08040000U
-#define EFLASH_COPY_BASE_ADDRESS          0x08060000U
+#define MAIN_SECTOR 2
+#define COPY_SECTOR 3
+#define EFLASH_MAIN_BASE_ADDRESS          0x08008000U
+#define EFLASH_COPY_BASE_ADDRESS          0x0800C000U
 
 // Serial port pins
 // #define SERIAL_RX USART0_RX_vect
