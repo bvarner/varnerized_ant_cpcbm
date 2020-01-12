@@ -82,9 +82,10 @@ void spindle_stop()
   // On the Nucleo F401, spindle enable and PWM are shared. Other CPUs have seperate enable pin.
   #ifdef VARIABLE_SPINDLE
     /* Disable PWM. Output voltage is zero. */
-    timer_disable_oc_output(SPINDLE_TIMER, SPINDLE_TIMER_CHAN);
+    timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, TIM_OCM_FORCE_LOW);
     /* Counter disable. */
     timer_disable_counter(SPINDLE_TIMER);
+
     #if defined(USE_SPINDLE_DIR_AS_ENABLE_PIN)
       #ifdef INVERT_SPINDLE_ENABLE_PIN
         SET_SPINDLE_ENABLE;  // Set pin to high
@@ -143,9 +144,9 @@ void spindle_set_state(uint8_t state, float rpm)
 
       current_pwm = floor( rpm*(spindle_pwm_range/(SPINDLE_MAX_RPM - SPINDLE_MIN_RPM)) + settings.spindle_pwm_min_time_on + 0.5);
 
+        timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_PWM_TYPE);
         timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, current_pwm);// Set PWM pin output
         timer_enable_oc_output(SPINDLE_TIMER, SPINDLE_TIMER_CHAN);
-        timer_enable_break_main_output(SPINDLE_TIMER);
 
         /* Counter enable. */
         timer_enable_counter(SPINDLE_TIMER); 
