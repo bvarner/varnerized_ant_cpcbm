@@ -1,3 +1,8 @@
+# Version 0.9.58 - 11-Feb-2020
+Added the gap-fill option to objcopy, to generate a binary with gap filled with 0xFF bytes instead of zeroes.  
+This should leave the flash correctly erased in the settings space after the binary is loaded. As in the previous version  
+0.9.57, reloading the bin resets the settings to their default values. 
+
 # First Release Note 01-Feb-2020
 
 ## Scope
