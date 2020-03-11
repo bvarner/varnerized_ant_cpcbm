@@ -438,6 +438,8 @@ void limits_go_home(uint8_t cycle_mask)
     
     st_prep_buffer(); // Prep and fill segment buffer from newly planned block.
     st_wake_up(); // Initiate motion
+    report_homing_debug_approach(approach);
+
     do {
       if (approach) {
         // Check limit state. Lock out cycle axes when they change.
@@ -447,6 +449,7 @@ void limits_go_home(uint8_t cycle_mask)
         {
         	enable_debounce_timer();
         	limit_state = limits_get_state();
+        	report_homing_debug_limit_status(limit_state);
         }
 #endif
         for (idx=0; idx<N_AXIS; idx++) {
@@ -472,6 +475,7 @@ void limits_go_home(uint8_t cycle_mask)
         if ( (sys_rt_exec_state & (EXEC_SAFETY_DOOR | EXEC_RESET)) ||  // Safety door or reset issued
            (!approach && (limits_get_state() & cycle_mask)) ||  // Limit switch still engaged after pull-off motion
            ( approach && (sys_rt_exec_state & EXEC_CYCLE_STOP)) ) { // Limit switch not found during approach.
+          report_homing_debug_limit_status(limits_get_state());
           mc_reset(); // Stop motors, if they are running.
           protocol_execute_realtime();
           return;

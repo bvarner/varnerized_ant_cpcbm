@@ -111,4 +111,10 @@ void report_startup_line(uint8_t n, char *line);
 // Prints build info and user info
 void report_build_info(char *line);
 
+// Prints if the homing movement is in approach or retracting.
+void report_homing_debug_approach(bool approach);
+
+// Prints the status of the limit switch during homing.
+void report_homing_debug_limit_status(uint8_t limit_state);
+
 #endif /* REPORT_H */

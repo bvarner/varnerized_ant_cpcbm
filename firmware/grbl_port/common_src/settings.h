@@ -43,6 +43,8 @@
 #define BITFLAG_INVERT_LIMIT_PINS  bit(6)
 #define BITFLAG_INVERT_PROBE_PIN   bit(7)
 
+#define BITFLAG_HOMING_DEBUG       bit(0)
+
 // Define status reporting boolean enable bit flags in settings.status_report_mask
 #define BITFLAG_RT_STATUS_MACHINE_POSITION  bit(0)
 #define BITFLAG_RT_STATUS_WORK_POSITION     bit(1)
@@ -131,6 +133,7 @@ typedef struct {
   float homing_seek_rate;
   uint16_t homing_debounce_delay;
   float homing_pulloff;
+  uint8_t homing_debug;
 
   uint32_t spindle_pwm_period;
   uint32_t spindle_pwm_max_time_on;

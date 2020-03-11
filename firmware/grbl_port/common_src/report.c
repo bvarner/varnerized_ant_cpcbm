@@ -149,6 +149,33 @@ void report_feedback_message(uint8_t message_code)
   printPgmString(PSTR("]\r\n"));
 }
 
+// Prints if the homing movement is in approach or retracting.
+void report_homing_debug_approach(bool approach)
+{
+	if(settings.homing_debug != 0)
+	{
+		if (approach)
+			printString("[Approaching]\r\n");
+		else
+			printString("[Retracting]\r\n");
+	}
+}
+
+// Prints the status of the limit switch during homing.
+void report_homing_debug_limit_status(uint8_t limit_state)
+{
+	if(settings.homing_debug != 0)
+	{
+		printString("[X=");
+		print_uint32_base10((limit_state & 0x1));
+		printString(" Y=");
+		print_uint32_base10((limit_state & 0x2) >> 1);
+		printString(" Z=");
+		print_uint32_base10((limit_state & 0x4) >> 2);
+		printString("]\r\n");
+	}
+}
+
 
 // Welcome message
 void report_init_message()
@@ -205,36 +232,38 @@ void report_grbl_settings() {
     printPgmString(PSTR("\r\n$29=")); print_uint32_base10(settings.spindle_pwm_max_time_on);
     printPgmString(PSTR("\r\n$30=")); print_uint32_base10(settings.spindle_pwm_min_time_on);
     printPgmString(PSTR("\r\n$31=")); print_uint32_base10(settings.spindle_pwm_enable_at_start);
+    printPgmString(PSTR("\r\n$95=")); print_uint8_base10(settings.homing_debug);
     printPgmString(PSTR("\r\n"));
   #else      
-    printPgmString(PSTR("$0=")); print_uint8_base10(settings.pulse_microseconds);
-    printPgmString(PSTR(" (step pulse, usec)\r\n$1=")); print_uint8_base10(settings.stepper_idle_lock_time);
-    printPgmString(PSTR(" (step idle delay, msec)\r\n$2=")); print_uint8_base10(settings.step_invert_mask); 
-    printPgmString(PSTR(" (step port invert mask:")); print_uint8_base2(settings.step_invert_mask);  
-    printPgmString(PSTR(")\r\n$3=")); print_uint8_base10(settings.dir_invert_mask); 
-    printPgmString(PSTR(" (dir port invert mask:")); print_uint8_base2(settings.dir_invert_mask);  
-    printPgmString(PSTR(")\r\n$4=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE));
-    printPgmString(PSTR(" (step enable invert, bool)\r\n$5=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_INVERT_LIMIT_PINS));
-    printPgmString(PSTR(" (limit pins invert, bool)\r\n$6=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_INVERT_PROBE_PIN));
-    printPgmString(PSTR(" (probe pin invert, bool)\r\n$10=")); print_uint8_base10(settings.status_report_mask);
-    printPgmString(PSTR(" (status report mask:")); print_uint8_base2(settings.status_report_mask);
-    printPgmString(PSTR(")\r\n$11=")); printFloat_SettingValue(settings.junction_deviation);
-    printPgmString(PSTR(" (junction deviation, mm)\r\n$12=")); printFloat_SettingValue(settings.arc_tolerance);
-    printPgmString(PSTR(" (arc tolerance, mm)\r\n$13=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_REPORT_INCHES));
-    printPgmString(PSTR(" (report inches, bool)\r\n$20=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_SOFT_LIMIT_ENABLE));
-    printPgmString(PSTR(" (soft limits, bool)\r\n$21=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE));
-    printPgmString(PSTR(" (hard limits, bool)\r\n$22=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE));
-    printPgmString(PSTR(" (homing cycle, bool)\r\n$23=")); print_uint8_base10(settings.homing_dir_mask);
-    printPgmString(PSTR(" (homing dir invert mask:")); print_uint8_base2(settings.homing_dir_mask);  
-    printPgmString(PSTR(")\r\n$24=")); printFloat_SettingValue(settings.homing_feed_rate);
-    printPgmString(PSTR(" (homing feed, mm/min)\r\n$25=")); printFloat_SettingValue(settings.homing_seek_rate);
-    printPgmString(PSTR(" (homing seek, mm/min)\r\n$26=")); print_uint32_base10(settings.homing_debounce_delay);
-    printPgmString(PSTR(" (homing debounce, msec)\r\n$27=")); printFloat_SettingValue(settings.homing_pulloff);
-    printPgmString(PSTR(" (homing pull-off, mm)\r\n$28=")); print_uint32_base10(settings.spindle_pwm_period);
-    printPgmString(PSTR(" (Spindle pwm period, us)\r\n$29=")); print_uint32_base10(settings.spindle_pwm_max_time_on);
-    printPgmString(PSTR(" (Spindle pwm Max time-on, us)\r\n$30=")); print_uint32_base10(settings.spindle_pwm_min_time_on);
-    printPgmString(PSTR(" (Spindle pwm min time-on, us)\r\n$31=")); print_uint32_base10(settings.spindle_pwm_enable_at_start);
-    printPgmString(PSTR(" (Spindle pwm Enabled at startup)\r\n"));
+    printPgmString(PSTR("$0=")); print_uint8_base10(settings.pulse_microseconds);printPgmString(PSTR(" (step pulse, usec)\r\n"));
+    printPgmString(PSTR("$1=")); print_uint8_base10(settings.stepper_idle_lock_time);printPgmString(PSTR(" (step idle delay, msec)\r\n"));
+    printPgmString(PSTR("$2=")); print_uint8_base10(settings.step_invert_mask);
+    printPgmString(PSTR(" (step port invert mask:")); print_uint8_base2(settings.step_invert_mask);printPgmString(PSTR(")\r\n"));
+    printPgmString(PSTR("$3=")); print_uint8_base10(settings.dir_invert_mask);
+    printPgmString(PSTR(" (dir port invert mask:")); print_uint8_base2(settings.dir_invert_mask);printPgmString(PSTR(")\r\n"));
+    printPgmString(PSTR("$4=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE));printPgmString(PSTR(" (step enable invert, bool)\r\n"));
+    printPgmString(PSTR("$5=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_INVERT_LIMIT_PINS));printPgmString(PSTR(" (limit pins invert, bool)\r\n"));
+    printPgmString(PSTR("$6=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_INVERT_PROBE_PIN));printPgmString(PSTR(" (probe pin invert, bool)\r\n"));
+    printPgmString(PSTR("$10=")); print_uint8_base10(settings.status_report_mask);
+    printPgmString(PSTR(" (status report mask:")); print_uint8_base2(settings.status_report_mask);printPgmString(PSTR(")\r\n"));
+    printPgmString(PSTR("$11=")); printFloat_SettingValue(settings.junction_deviation);printPgmString(PSTR(" (junction deviation, mm)\r\n"));
+    printPgmString(PSTR("$12=")); printFloat_SettingValue(settings.arc_tolerance);printPgmString(PSTR(" (arc tolerance, mm)\r\n"));
+    printPgmString(PSTR("$13=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_REPORT_INCHES));printPgmString(PSTR(" (report inches, bool)\r\n"));
+    printPgmString(PSTR("$20=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_SOFT_LIMIT_ENABLE));printPgmString(PSTR(" (soft limits, bool)\r\n"));
+    printPgmString(PSTR("$21=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE));printPgmString(PSTR(" (hard limits, bool)\r\n"));
+    printPgmString(PSTR("$22=")); print_uint8_base10(bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE));printPgmString(PSTR(" (homing cycle, bool)\r\n"));
+    printPgmString(PSTR("$23=")); print_uint8_base10(settings.homing_dir_mask);
+    printPgmString(PSTR(" (homing dir invert mask:")); print_uint8_base2(settings.homing_dir_mask);printPgmString(PSTR(")\r\n"));
+    printPgmString(PSTR("$24=")); printFloat_SettingValue(settings.homing_feed_rate);printPgmString(PSTR(" (homing feed, mm/min)\r\n"));
+    printPgmString(PSTR("$25=")); printFloat_SettingValue(settings.homing_seek_rate);printPgmString(PSTR(" (homing seek, mm/min)\r\n"));
+    printPgmString(PSTR("$26=")); print_uint32_base10(settings.homing_debounce_delay);printPgmString(PSTR(" (homing debounce, msec)\r\n"));
+    printPgmString(PSTR("$27=")); printFloat_SettingValue(settings.homing_pulloff);printPgmString(PSTR(" (homing pull-off, mm)\r\n"));
+    printPgmString(PSTR("$28=")); print_uint32_base10(settings.spindle_pwm_period);printPgmString(PSTR(" (Spindle pwm period, us)\r\n"));
+    printPgmString(PSTR("$29=")); print_uint32_base10(settings.spindle_pwm_max_time_on);printPgmString(PSTR(" (Spindle pwm Max time-on, us)\r\n"));
+    printPgmString(PSTR("$30=")); print_uint32_base10(settings.spindle_pwm_min_time_on);printPgmString(PSTR(" (Spindle pwm min time-on, us)\r\n"));
+    printPgmString(PSTR("$31=")); print_uint32_base10(settings.spindle_pwm_enable_at_start);printPgmString(PSTR(" (Spindle pwm Enabled at startup)\r\n"));
+    printPgmString(PSTR("$95="));print_uint8_base10(settings.homing_debug);printPgmString(PSTR(" (Homing Debug )\r\n"));
+
   #endif
   
   // Print axis settings

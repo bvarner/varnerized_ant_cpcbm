@@ -214,7 +214,9 @@ void settings_restore(uint8_t restore_flag) {
     settings.acceleration[Z_AXIS] = DEFAULT_Z_ACCELERATION;
     settings.max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL);
     settings.max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL);
-    settings.max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL);    
+    settings.max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL);
+
+    settings.homing_debug = 0;
 
     write_global_settings();
   }
@@ -472,6 +474,16 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
       case 29: settings.spindle_pwm_max_time_on = int_value32; break;
       case 30: settings.spindle_pwm_min_time_on = int_value32; break;
       case 31: settings.spindle_pwm_enable_at_start = int_value32; break;
+      case 95:
+    	  if (int_value)
+    	  {
+    		  settings.homing_debug |= BITFLAG_HOMING_DEBUG;
+    	  }
+    	  else
+    	  {
+    		  settings.homing_debug &= ~BITFLAG_HOMING_DEBUG;
+    	  }
+    	  break;
       default: 
         return(STATUS_INVALID_STATEMENT);
     }
