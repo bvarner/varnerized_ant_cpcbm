@@ -1,3 +1,35 @@
+# Version 0.9.59 - 10-Mar-2020
+Added the homing debug feature that prints on serial which is the movement that is being executed and when a limit switch is pressed.  
+This debug is enabled with the setting $95 equal to 1, and disabled setting it to zero.  
+The first time you install this version the settings will be reset to the default value and you may get an error indication, but it's  
+just due to the CRC calculation made the first time, so there is no real problem.  
+Here is an example of homing debug with some comments after the "<--" string:  
+
+$H  
+[Approaching]  
+[X=0 Y=0 Z=1] <--Limit switch Z pressed   
+[Retracting]  
+[Approaching]  
+[X=0 Y=0 Z=1] <--Limit switch Z pressed   
+[Retracting]  
+[Approaching]  
+[X=0 Y=1 Z=0] <--Limit switch Y pressed   
+[Retracting]  
+[Approaching]  
+[X=0 Y=1 Z=0] <--Limit switch Y pressed   
+[Retracting]  
+[Approaching]  
+[X=0 Y=0 Z=0] <--Likely a bounce on X switch   
+[X=1 Y=0 Z=0] <--Limit switch X pressed   
+[Retracting]  
+[Approaching]  
+[X=0 Y=0 Z=0] <--Likely a bounce on X switch   
+[X=0 Y=0 Z=0] <--You can have more than one bounce, it's normal   
+[X=1 Y=0 Z=0] <--Limit switch X pressed   
+[Retracting]  
+ok  
+
+
 # Version 0.9.58 - 11-Feb-2020
 Added the gap-fill option to objcopy, to generate a binary with gap filled with 0xFF bytes instead of zeroes.  
 This should leave the flash correctly erased in the settings space after the binary is loaded. As in the previous version  
