@@ -2,8 +2,8 @@
   probe.c - code pertaining to probing methods
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2014-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ void probe_init()
   #else
     PROBE_PORT |= PROBE_MASK;    // Enable internal pull-up resistors. Normal high operation.
   #endif
-  // probe_configure_invert_mask(false); // Initialize invert mask. Not required. Updated when in-use.
+  probe_configure_invert_mask(false); // Initialize invert mask.
 #endif
 }
 
@@ -72,7 +72,7 @@ void probe_state_monitor()
   if (sys_probe_state == PROBE_ACTIVE) {
     if (probe_get_state()) {if (probe_get_state()) {if (probe_get_state()) {
       sys_probe_state = PROBE_OFF;
-      memcpy(sys.probe_position, sys.position, sizeof(sys.position));
+      memcpy(sys_probe_position, sys_position, sizeof(sys_position));
       bit_true(sys_rt_exec_state, EXEC_MOTION_CANCEL);
     }}}
   }

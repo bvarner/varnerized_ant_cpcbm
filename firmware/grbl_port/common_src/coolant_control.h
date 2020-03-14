@@ -2,8 +2,8 @@
   coolant_control.h - spindle control methods
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2012-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,10 +22,27 @@
 #ifndef COOLANT_CONTROL_H
 #define COOLANT_CONTROL_H
 
+#define COOLANT_NO_SYNC     false
+#define COOLANT_FORCE_SYNC  true
 
+#define COOLANT_STATE_DISABLE   0  // Must be zero
+#define COOLANT_STATE_FLOOD     bit(0)
+#define COOLANT_STATE_MIST      bit(1)
+
+
+// Initializes coolant control pins.
 void coolant_init(void);
+
+// Returns current coolant output state. Overrides may alter it from programmed state.
+uint8_t coolant_get_state(void);
+
+// Immediately disables coolant pins.
 void coolant_stop(void);
+
+// Sets the coolant pins according to state specified.
 void coolant_set_state(uint8_t mode);
-void coolant_run(uint8_t mode);
+
+// G-code parser entry-point for setting coolant states. Checks for and executes additional conditions.
+void coolant_sync(uint8_t mode);
 
 #endif /* COOLANT_CONTROL_H */

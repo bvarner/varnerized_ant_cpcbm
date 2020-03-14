@@ -2,8 +2,8 @@
   nuts_bolts.h - Header file for shared definitions, variables, and functions
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2011-2015 Sungeun K. Jeon 
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud 
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
@@ -25,6 +25,8 @@
 
 #define false 0
 #define true 1
+
+#define SOME_LARGE_VALUE 1.0E+38
 
 // Axis array index values. Must start with 0 and be continuous.
 #define N_AXIS 3 // Number of axes
@@ -48,6 +50,8 @@
 #else
 #define TICKS_PER_MICROSECOND (F_CPU/1000000)
 #endif
+#define DELAY_MODE_DWELL       0
+#define DELAY_MODE_SYS_SUSPEND 1
 
 // Useful macros
 #define clear_vector(a) memset(a, 0, sizeof(a))
@@ -55,6 +59,7 @@
 // #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #define min(a,b) (((a) < (b)) ? (a) : (b))
+#define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
 
 // Bit field and masking macros
 #define bit(n) (1 << n) 
@@ -77,6 +82,10 @@
 // a pointer to the result variable. Returns true when it succeeds
 uint8_t read_float(char *line, uint8_t *char_counter, float *float_ptr);
 
+// Non-blocking delay function used for general operation and suspend features.
+void delay_sec(float seconds, uint8_t mode);
+
+
 #ifdef NUCLEO
 void SysTick_Init(void);
 #endif
@@ -89,5 +98,8 @@ void delay_us(uint32_t us);
 
 // Computes hypotenuse, avoiding avr-gcc's bloated version and the extra error checking.
 float hypot_f(float x, float y);
+
+float convert_delta_vector_to_unit_vector(float *vector);
+float limit_value_by_axis_maximum(float *max_value, float *unit_vec);
 
 #endif /* NUTS_BOLTS_H */

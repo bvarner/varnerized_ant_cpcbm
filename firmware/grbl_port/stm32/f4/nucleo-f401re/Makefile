@@ -1,7 +1,7 @@
 ##
 ## This file is part of the grbl_port_opencm3 project.
 ##
-## Copyright (C) 2017 Angelo Di Chello
+## Copyright (C) 2017-2020 Angelo Di Chello
 ##
 ## Grbl_port_opencm3 is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -43,7 +43,8 @@ COMMON_SRCS := coolant_control.c \
                planner.c \
                probe.c \
                test_nucleo.c \
-               spindle_control.c 
+               spindle_control.c \
+               jog.c
 
 LDSCRIPT = ./nucleo-f401re_ramcode.ld
 

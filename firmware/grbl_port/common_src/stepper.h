@@ -2,8 +2,8 @@
   stepper.h - stepper motor driver: executes motion plans of planner.c using the stepper motors
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2011-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
@@ -44,6 +44,13 @@ void st_generate_step_dir_invert_masks(void);
 // Reset the stepper subsystem variables       
 void st_reset(void);
              
+// Changes the run state of the step segment buffer to execute the special parking motion.
+void st_parking_setup_buffer(void);
+
+// Restores the step segment buffer to the normal run state after a parking motion.
+void st_parking_restore_buffer(void);
+
+             
 // Reloads step segment buffer. Called continuously by realtime execution system.
 void st_prep_buffer(void);
 
@@ -51,8 +58,6 @@ void st_prep_buffer(void);
 void st_update_plan_block_parameters(void);
 
 // Called by realtime status reporting if realtime rate reporting is enabled in config.h.
-#ifdef REPORT_REALTIME_RATE
 float st_get_realtime_rate(void);
-#endif
 
 #endif /* STEPPER_H */

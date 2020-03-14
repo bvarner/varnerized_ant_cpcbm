@@ -2,7 +2,7 @@
   gcode.c - rs274/ngc parser.
   Part of Grbl
 
-  Copyright (c) 2011-2015 Sungeun K. Jeon
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
   Grbl is free software: you can redistribute it and/or modify
@@ -24,7 +24,8 @@
 // NOTE: Max line number is defined by the g-code standard to be 99999. It seems to be an
 // arbitrary value, and some GUIs may require more. So we increased it based on a max safe
 // value when converting a float (7.2 digit precision)s to an integer.
-#define MAX_LINE_NUMBER 9999999 
+#define MAX_LINE_NUMBER 10000000
+#define MAX_TOOL_NUMBER 255 // Limited by max unsigned 8-bit value
 
 #define AXIS_COMMAND_NONE 0
 #define AXIS_COMMAND_NON_MODAL 1 
@@ -53,19 +54,10 @@ void gc_init()
 // limit pull-off routines.
 void gc_sync_position() 
 {
-  system_convert_array_steps_to_mpos(gc_state.position,sys.position);
+  system_convert_array_steps_to_mpos(gc_state.position,sys_position);
 }
 
 
-static uint8_t gc_check_same_position(float *pos_a, float *pos_b) 
-{
-  uint8_t idx;
-  for (idx=0; idx<N_AXIS; idx++) {
-    if (pos_a[idx] != pos_b[idx]) { return(false); }
-  }
-  return(true);
-}
-         
 // Executes one line of 0-terminated G-Code. The line is assumed to contain only uppercase
 // characters and signed floating point values (no whitespace). Comments and block delete
 // characters have been removed. In this function, all units and positions are converted and 
@@ -82,19 +74,30 @@ uint8_t gc_execute_line(char *line)
 
   memset(&gc_block, 0, sizeof(parser_block_t)); // Initialize the parser block struct.
   memcpy(&gc_block.modal,&gc_state.modal,sizeof(gc_modal_t)); // Copy current modes
+
   uint8_t axis_command = AXIS_COMMAND_NONE;
   uint8_t axis_0, axis_1, axis_linear;
   uint8_t coord_select = 0; // Tracks G10 P coordinate selection for execution
-  float coordinate_data[N_AXIS]; // Multi-use variable to store coordinate data for execution
-  float parameter_data[N_AXIS]; // Multi-use variable to store parameter data for execution
   
   // Initialize bitflag tracking variables for axis indices compatible operations.
   uint8_t axis_words = 0; // XYZ tracking
   uint8_t ijk_words = 0; // IJK tracking 
 
-  // Initialize command and value words variables. Tracks words contained in this block.
-  uint16_t command_words = 0; // G and M command words. Also used for modal group violations.
-  uint16_t value_words = 0; // Value words. 
+  // Initialize command and value words and parser flags variables.
+  uint16_t command_words = 0; // Tracks G and M command words. Also used for modal group violations.
+  uint16_t value_words = 0; // Tracks value words.
+  uint8_t gc_parser_flags = GC_PARSER_NONE;
+
+  // Determine if the line is a jogging motion or a normal g-code block.
+  if (line[0] == '$') { // NOTE: `$J=` already parsed when passed to this function.
+    // Set G1 and G94 enforced modes to ensure accurate error checks.
+    gc_parser_flags |= GC_PARSER_JOG_MOTION;
+    gc_block.modal.motion = MOTION_MODE_LINEAR;
+    gc_block.modal.feed_rate = FEED_RATE_MODE_UNITS_PER_MIN;
+    #ifdef USE_LINE_NUMBERS
+      gc_block.values.n = JOG_LINE_NUMBER; // Initialize default line number reported during jog.
+    #endif
+  }
 
   /* -------------------------------------------------------------------------------------
      STEP 2: Import all g-code words in the block line. A g-code word is a letter followed by
@@ -103,11 +106,13 @@ uint8_t gc_execute_line(char *line)
      words, and for negative values set for the value words F, N, P, T, and S. */
      
   uint8_t word_bit; // Bit-value for assigning tracking variables
-  uint8_t char_counter = 0;  
+  uint8_t char_counter;
   char letter;
   float value;
   uint8_t int_value = 0;
   uint16_t mantissa = 0;
+  if (gc_parser_flags & GC_PARSER_JOG_MOTION) { char_counter = 3; } // Start parsing after `$J=`
+  else { char_counter = 0; }
 
   while (line[char_counter] != 0) { // Loop until no more g-code words in line.
     
@@ -148,34 +153,11 @@ uint8_t gc_execute_line(char *line)
             // No break. Continues to next line.
           case 4: case 53: 
             word_bit = MODAL_GROUP_G0; 
-            switch(int_value) {
-              case 4: gc_block.non_modal_command = NON_MODAL_DWELL; break; // G4
-              case 10: gc_block.non_modal_command = NON_MODAL_SET_COORDINATE_DATA; break; // G10
-              case 28:
-                switch(mantissa) {
-                  case 0: gc_block.non_modal_command = NON_MODAL_GO_HOME_0; break;  // G28
-                  case 10: gc_block.non_modal_command = NON_MODAL_SET_HOME_0; break; // G28.1
-                  default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G28.x command]
-                }
+            gc_block.non_modal_command = int_value;
+            if ((int_value == 28) || (int_value == 30) || (int_value == 92)) {
+              if (!((mantissa == 0) || (mantissa == 10))) { FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); }
+              gc_block.non_modal_command += mantissa;
                 mantissa = 0; // Set to zero to indicate valid non-integer G command.
-                break;
-              case 30: 
-                switch(mantissa) {
-                  case 0: gc_block.non_modal_command = NON_MODAL_GO_HOME_1; break;  // G30
-                  case 10: gc_block.non_modal_command = NON_MODAL_SET_HOME_1; break; // G30.1
-                  default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G30.x command]
-                }
-                mantissa = 0; // Set to zero to indicate valid non-integer G command.
-                break;
-              case 53: gc_block.non_modal_command = NON_MODAL_ABSOLUTE_OVERRIDE; break; // G53
-              case 92: 
-                switch(mantissa) {
-                  case 0: gc_block.non_modal_command = NON_MODAL_SET_COORDINATE_OFFSET; break; // G92
-                  case 10: gc_block.non_modal_command = NON_MODAL_RESET_COORDINATE_OFFSET; break; // G92.1
-                  default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G92.x command]
-                }
-                mantissa = 0; // Set to zero to indicate valid non-integer G command.
-                break;      
             }
             break;
           case 0: case 1: case 2: case 3: case 38: 
@@ -186,37 +168,23 @@ uint8_t gc_execute_line(char *line)
             // No break. Continues to next line.
           case 80: 
             word_bit = MODAL_GROUP_G1; 
-            switch(int_value) {
-              case 0: gc_block.modal.motion = MOTION_MODE_SEEK; break; // G0
-              case 1: gc_block.modal.motion = MOTION_MODE_LINEAR; break; // G1
-              case 2: gc_block.modal.motion = MOTION_MODE_CW_ARC; break; // G2
-              case 3: gc_block.modal.motion = MOTION_MODE_CCW_ARC; break; // G3
-              case 38: 
-                switch(mantissa) {
-                  case 20: gc_block.modal.motion = MOTION_MODE_PROBE_TOWARD; break; // G38.2
-                  case 30: gc_block.modal.motion = MOTION_MODE_PROBE_TOWARD_NO_ERROR; break; // G38.3
-                  case 40: gc_block.modal.motion = MOTION_MODE_PROBE_AWAY; break; // G38.4
-                  case 50: gc_block.modal.motion = MOTION_MODE_PROBE_AWAY_NO_ERROR; break; // G38.5
-                  default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G38.x command]
+            gc_block.modal.motion = int_value;
+            if (int_value == 38){
+              if (!((mantissa == 20) || (mantissa == 30) || (mantissa == 40) || (mantissa == 50))) {
+                FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G38.x command]
                 }
+              gc_block.modal.motion += (mantissa/10)+100;
                 mantissa = 0; // Set to zero to indicate valid non-integer G command.
-                break;
-              case 80: gc_block.modal.motion = MOTION_MODE_NONE; break; // G80
             }            
             break;
           case 17: case 18: case 19: 
             word_bit = MODAL_GROUP_G2; 
-            switch(int_value) {
-              case 17: gc_block.modal.plane_select = PLANE_SELECT_XY; break;
-              case 18: gc_block.modal.plane_select = PLANE_SELECT_ZX; break;
-              case 19: gc_block.modal.plane_select = PLANE_SELECT_YZ; break;
-            }
+            gc_block.modal.plane_select = int_value - 17;
             break;
           case 90: case 91: 
             if (mantissa == 0) {
               word_bit = MODAL_GROUP_G3; 
-              if (int_value == 90) { gc_block.modal.distance = DISTANCE_MODE_ABSOLUTE; } // G90
-              else { gc_block.modal.distance = DISTANCE_MODE_INCREMENTAL; } // G91
+              gc_block.modal.distance = int_value - 90;
             } else {
               word_bit = MODAL_GROUP_G4;
               if ((mantissa != 10) || (int_value == 90)) { FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); } // [G90.1 not supported]
@@ -226,13 +194,11 @@ uint8_t gc_execute_line(char *line)
             break;
           case 93: case 94: 
             word_bit = MODAL_GROUP_G5; 
-            if (int_value == 93) { gc_block.modal.feed_rate = FEED_RATE_MODE_INVERSE_TIME; } // G93
-            else { gc_block.modal.feed_rate = FEED_RATE_MODE_UNITS_PER_MIN; } // G94
+            gc_block.modal.feed_rate = 94 - int_value;
             break;
           case 20: case 21: 
             word_bit = MODAL_GROUP_G6; 
-            if (int_value == 20) { gc_block.modal.units = UNITS_MODE_INCHES; }  // G20
-            else { gc_block.modal.units = UNITS_MODE_MM; } // G21
+            gc_block.modal.units = 21 - int_value;
             break;
           case 40:
             word_bit = MODAL_GROUP_G7;
@@ -257,7 +223,7 @@ uint8_t gc_execute_line(char *line)
           case 54: case 55: case 56: case 57: case 58: case 59: 
             // NOTE: G59.x are not supported. (But their int_values would be 60, 61, and 62.)
             word_bit = MODAL_GROUP_G12;
-            gc_block.modal.coord_select = int_value-54; // Shift to array indexing.
+            gc_block.modal.coord_select = int_value - 54; // Shift to array indexing.
             break;
           case 61:
             word_bit = MODAL_GROUP_G13;
@@ -283,26 +249,22 @@ uint8_t gc_execute_line(char *line)
             switch(int_value) {
               case 0: gc_block.modal.program_flow = PROGRAM_FLOW_PAUSED; break; // Program pause
               case 1: break; // Optional stop not supported. Ignore.
-              case 2: case 30: gc_block.modal.program_flow = PROGRAM_FLOW_COMPLETED; break; // Program end and reset 
+              default: gc_block.modal.program_flow = int_value; // Program end and reset
             }
             break;
-          #ifndef USE_SPINDLE_DIR_AS_ENABLE_PIN
-            case 4: 
-          #endif
-          case 3: case 5:
+          case 3: case 4: case 5:
             word_bit = MODAL_GROUP_M7; 
             switch(int_value) {
               case 3: gc_block.modal.spindle = SPINDLE_ENABLE_CW; break;
-              #ifndef USE_SPINDLE_DIR_AS_ENABLE_PIN
                 case 4: gc_block.modal.spindle = SPINDLE_ENABLE_CCW; break;
-              #endif
               case 5: gc_block.modal.spindle = SPINDLE_DISABLE; break;
             }
             break;            
          #ifdef ENABLE_M7  
-          case 7:
-         #endif
+            case 7: case 8: case 9:
+          #else
           case 8: case 9:
+         #endif
             word_bit = MODAL_GROUP_M8; 
             switch(int_value) {      
              #ifdef ENABLE_M7
@@ -312,6 +274,12 @@ uint8_t gc_execute_line(char *line)
               case 9: gc_block.modal.coolant = COOLANT_DISABLE; break;
             }
             break;
+          #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+            case 56:
+              word_bit = MODAL_GROUP_M9;
+              gc_block.modal.override = OVERRIDE_PARKING_MOTION;
+              break;
+          #endif
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]
         }
       
@@ -344,7 +312,10 @@ uint8_t gc_execute_line(char *line)
           // case 'Q': // Not supported
           case 'R': word_bit = WORD_R; gc_block.values.r = value; break;
           case 'S': word_bit = WORD_S; gc_block.values.s = value; break;
-          case 'T': word_bit = WORD_T; break; // gc.values.t = int_value;
+          case 'T': word_bit = WORD_T; 
+					  if (value > MAX_TOOL_NUMBER) { FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED); }
+            gc_block.values.t = int_value;
+						break;
           case 'X': word_bit = WORD_X; gc_block.values.xyz[X_AXIS] = value; axis_words |= (1<<X_AXIS); break;
           case 'Y': word_bit = WORD_Y; gc_block.values.xyz[Y_AXIS] = value; axis_words |= (1<<Y_AXIS); break;
           case 'Z': word_bit = WORD_Z; gc_block.values.xyz[Z_AXIS] = value; axis_words |= (1<<Z_AXIS); break;
@@ -417,10 +388,15 @@ uint8_t gc_execute_line(char *line)
   
   // [2. Set feed rate mode ]: G93 F word missing with G1,G2/3 active, implicitly or explicitly. Feed rate
   //   is not defined after switching to G94 from G93.
+  // NOTE: For jogging, ignore prior feed rate mode. Enforce G94 and check for required F word.
+  if (gc_parser_flags & GC_PARSER_JOG_MOTION) {
+    if (bit_isfalse(value_words,bit(WORD_F))) { FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE); }
+    if (gc_block.modal.units == UNITS_MODE_INCHES) { gc_block.values.f *= MM_PER_INCH; }
+  } else {
   if (gc_block.modal.feed_rate == FEED_RATE_MODE_INVERSE_TIME) { // = G93
     // NOTE: G38 can also operate in inverse time, but is undefined as an error. Missing F word check added here.
     if (axis_command == AXIS_COMMAND_MOTION_MODE) { 
-      if ((gc_block.modal.motion != MOTION_MODE_NONE) || (gc_block.modal.motion != MOTION_MODE_SEEK)) {
+        if ((gc_block.modal.motion != MOTION_MODE_NONE) && (gc_block.modal.motion != MOTION_MODE_SEEK)) {
         if (bit_isfalse(value_words,bit(WORD_F))) { FAIL(STATUS_GCODE_UNDEFINED_FEED_RATE); } // [F word missing]
       }
     }
@@ -446,6 +422,7 @@ uint8_t gc_execute_line(char *line)
       }
     } // Else, switching to G94 from G93, so don't push last state feed rate. Its undefined or the passed F word value.
   } 
+  }
   // bit_false(value_words,bit(WORD_F)); // NOTE: Single-meaning value word. Set at end of error-checking.
   
   // [4. Set spindle speed ]: S is negative (done.)
@@ -458,7 +435,15 @@ uint8_t gc_execute_line(char *line)
   // [6. Change tool ]: N/A
   // [7. Spindle control ]: N/A
   // [8. Coolant control ]: N/A
-  // [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED.
+  // [9. Override control ]: Not supported except for a Grbl-only parking motion override control.
+  #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    if (bit_istrue(command_words,bit(MODAL_GROUP_M9))) { // Already set as enabled in parser.
+      if (bit_istrue(value_words,bit(WORD_P))) {
+        if (gc_block.values.p == 0.0) { gc_block.modal.override = OVERRIDE_DISABLED; }
+        bit_false(value_words,bit(WORD_P));
+      }
+    }
+  #endif
   
   // [10. Dwell ]: P value missing. P is negative (done.) NOTE: See below.
   if (gc_block.non_modal_command == NON_MODAL_DWELL) {
@@ -516,11 +501,12 @@ uint8_t gc_execute_line(char *line)
   // is active. The read pauses the processor temporarily and may cause a rare crash. For 
   // future versions on processors with enough memory, all coordinate data should be stored
   // in memory and written to EEPROM only when there is not a cycle active.
-  memcpy(coordinate_data,gc_state.coord_system,sizeof(gc_state.coord_system));
+  float block_coord_system[N_AXIS];
+  memcpy(block_coord_system,gc_state.coord_system,sizeof(gc_state.coord_system));
   if ( bit_istrue(command_words,bit(MODAL_GROUP_G12)) ) { // Check if called in block
     if (gc_block.modal.coord_select > N_COORDINATE_SYSTEM) { FAIL(STATUS_GCODE_UNSUPPORTED_COORD_SYS); } // [Greater than N sys]
     if (gc_state.modal.coord_select != gc_block.modal.coord_select) {
-      if (!(settings_read_coord_data(gc_block.modal.coord_select,coordinate_data))) { FAIL(STATUS_SETTING_READ_FAIL); } 
+      if (!(settings_read_coord_data(gc_block.modal.coord_select,block_coord_system))) { FAIL(STATUS_SETTING_READ_FAIL); }
     }
   }
   
@@ -552,21 +538,24 @@ uint8_t gc_execute_line(char *line)
       // Determine coordinate system to change and try to load from EEPROM.
       if (coord_select > 0) { coord_select--; } // Adjust P1-P6 index to EEPROM coordinate data indexing.
       else { coord_select = gc_block.modal.coord_select; } // Index P0 as the active coordinate system
-      if (!settings_read_coord_data(coord_select,parameter_data)) { FAIL(STATUS_SETTING_READ_FAIL); } // [EEPROM read fail]
     
-      // Pre-calculate the coordinate data changes. NOTE: Uses parameter_data since coordinate_data may be in use by G54-59.
+      // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
+      if (!settings_read_coord_data(coord_select,gc_block.values.ijk)) { FAIL(STATUS_SETTING_READ_FAIL); } // [EEPROM read fail]
+
+      // Pre-calculate the coordinate data changes.
       for (idx=0; idx<N_AXIS; idx++) { // Axes indices are consistent, so loop may be used.
         // Update axes defined only in block. Always in machine coordinates. Can change non-active system.
         if (bit_istrue(axis_words,bit(idx)) ) {
           if (gc_block.values.l == 20) {
             // L20: Update coordinate system axis at current position (with modifiers) with programmed value
-            parameter_data[idx] = gc_state.position[idx]-gc_state.coord_offset[idx]-gc_block.values.xyz[idx];
-            if (idx == TOOL_LENGTH_OFFSET_AXIS) { parameter_data[idx] -= gc_state.tool_length_offset; }
+            // WPos = MPos - WCS - G92 - TLO  ->  WCS = MPos - G92 - TLO - WPos
+            gc_block.values.ijk[idx] = gc_state.position[idx]-gc_state.coord_offset[idx]-gc_block.values.xyz[idx];
+            if (idx == TOOL_LENGTH_OFFSET_AXIS) { gc_block.values.ijk[idx] -= gc_state.tool_length_offset; }
           } else {
             // L2: Update coordinate system axis to programmed value.
-            parameter_data[idx] = gc_block.values.xyz[idx]; 
-          }
+            gc_block.values.ijk[idx] = gc_block.values.xyz[idx];
         }
+        } // Else, keep current stored value.
       }
       break;
     case NON_MODAL_SET_COORDINATE_OFFSET:
@@ -577,7 +566,8 @@ uint8_t gc_execute_line(char *line)
       // active coordinate system is selected, but is still active unless G92.1 disables it. 
       for (idx=0; idx<N_AXIS; idx++) { // Axes indices are consistent, so loop may be used.
         if (bit_istrue(axis_words,bit(idx)) ) {
-          gc_block.values.xyz[idx] = gc_state.position[idx]-coordinate_data[idx]-gc_block.values.xyz[idx];
+          // WPos = MPos - WCS - G92 - TLO  ->  G92 = MPos - WCS - TLO - WPos
+          gc_block.values.xyz[idx] = gc_state.position[idx]-block_coord_system[idx]-gc_block.values.xyz[idx];
           if (idx == TOOL_LENGTH_OFFSET_AXIS) { gc_block.values.xyz[idx] -= gc_state.tool_length_offset; }
         } else {
           gc_block.values.xyz[idx] = gc_state.coord_offset[idx];
@@ -602,7 +592,7 @@ uint8_t gc_execute_line(char *line)
               if (gc_block.non_modal_command != NON_MODAL_ABSOLUTE_OVERRIDE) {
                 // Apply coordinate offsets based on distance mode.
                 if (gc_block.modal.distance == DISTANCE_MODE_ABSOLUTE) {
-                  gc_block.values.xyz[idx] += coordinate_data[idx] + gc_state.coord_offset[idx];
+                  gc_block.values.xyz[idx] += block_coord_system[idx] + gc_state.coord_offset[idx];
                   if (idx == TOOL_LENGTH_OFFSET_AXIS) { gc_block.values.xyz[idx] += gc_state.tool_length_offset; }
                 } else {  // Incremental mode
                   gc_block.values.xyz[idx] += gc_state.position[idx];
@@ -615,19 +605,27 @@ uint8_t gc_execute_line(char *line)
           
       // Check remaining non-modal commands for errors.
       switch (gc_block.non_modal_command) {        
-        case NON_MODAL_GO_HOME_0: 
-          // [G28 Errors]: Cutter compensation is enabled. 
-          // Retreive G28 go-home position data (in machine coordinates) from EEPROM
-          if (!axis_words) { axis_command = AXIS_COMMAND_NONE; } // Set to none if no intermediate motion.
-          if (!settings_read_coord_data(SETTING_INDEX_G28,parameter_data)) { FAIL(STATUS_SETTING_READ_FAIL); }
+        case NON_MODAL_GO_HOME_0: // G28
+        case NON_MODAL_GO_HOME_1: // G30
+          // [G28/30 Errors]: Cutter compensation is enabled.
+          // Retreive G28/30 go-home position data (in machine coordinates) from EEPROM
+          // NOTE: Store parameter data in IJK values. By rule, they are not in use with this command.
+          if (gc_block.non_modal_command == NON_MODAL_GO_HOME_0) {
+            if (!settings_read_coord_data(SETTING_INDEX_G28,gc_block.values.ijk)) { FAIL(STATUS_SETTING_READ_FAIL); }
+          } else { // == NON_MODAL_GO_HOME_1
+            if (!settings_read_coord_data(SETTING_INDEX_G30,gc_block.values.ijk)) { FAIL(STATUS_SETTING_READ_FAIL); }
+          }
+          if (axis_words) {
+            // Move only the axes specified in secondary move.
+            for (idx=0; idx<N_AXIS; idx++) {
+              if (!(axis_words & (1<<idx))) { gc_block.values.ijk[idx] = gc_state.position[idx]; }
+            }
+          } else {
+            axis_command = AXIS_COMMAND_NONE; // Set to none if no intermediate motion.
+          }
           break;
-        case NON_MODAL_GO_HOME_1:
-          // [G30 Errors]: Cutter compensation is enabled. 
-          // Retreive G30 go-home position data (in machine coordinates) from EEPROM
-          if (!axis_words) { axis_command = AXIS_COMMAND_NONE; } // Set to none if no intermediate motion.
-          if (!settings_read_coord_data(SETTING_INDEX_G30,parameter_data)) { FAIL(STATUS_SETTING_READ_FAIL); }
-          break;
-        case NON_MODAL_SET_HOME_0: case NON_MODAL_SET_HOME_1:
+        case NON_MODAL_SET_HOME_0: // G28.1
+        case NON_MODAL_SET_HOME_1: // G30.1
           // [G28.1/30.1 Errors]: Cutter compensation is enabled. 
           // NOTE: If axis words are passed here, they are interpreted as an implicit motion mode.
           break;
@@ -646,10 +644,9 @@ uint8_t gc_execute_line(char *line)
       
   // [20. Motion modes ]: 
   if (gc_block.modal.motion == MOTION_MODE_NONE) {
-    // [G80 Errors]: Axis word exist and are not used by a non-modal command.
-    if ((axis_words) && (axis_command != AXIS_COMMAND_NON_MODAL)) { 
-      FAIL(STATUS_GCODE_AXIS_WORDS_EXIST); // [No axis words allowed]
-    }
+    // [G80 Errors]: Axis word are programmed while G80 is active.
+    // NOTE: Even non-modal commands or TLO that use axis words will throw this strict error.
+    if (axis_words) { FAIL(STATUS_GCODE_AXIS_WORDS_EXIST); } // [No axis words allowed]
 
   // Check remaining motion modes, if axis word are implicit (exist and not used by G10/28/30/92), or 
   // was explicitly commanded in the g-code block.
@@ -671,9 +668,10 @@ uint8_t gc_execute_line(char *line)
           // [G1 Errors]: Feed rate undefined. Axis letter not configured or without real value.
           // Axis words are optional. If missing, set axis command flag to ignore execution.
           if (!axis_words) { axis_command = AXIS_COMMAND_NONE; }
-
           break;
-        case MOTION_MODE_CW_ARC: case MOTION_MODE_CCW_ARC:
+        case MOTION_MODE_CW_ARC: 
+          gc_parser_flags |= GC_PARSER_ARC_IS_CLOCKWISE; // No break intentional.
+        case MOTION_MODE_CCW_ARC:
           // [G2/3 Errors All-Modes]: Feed rate undefined.
           // [G2/3 Radius-Mode Errors]: No axis words in selected plane. Target point is same as current.
           // [G2/3 Offset-Mode Errors]: No axis words and/or offsets in selected plane. The radius to the current 
@@ -691,7 +689,7 @@ uint8_t gc_execute_line(char *line)
 
           if (value_words & bit(WORD_R)) { // Arc Radius Mode  
             bit_false(value_words,bit(WORD_R));
-            if (gc_check_same_position(gc_state.position, gc_block.values.xyz)) { FAIL(STATUS_GCODE_INVALID_TARGET); } // [Invalid target]
+            if (isequal_position_vector(gc_state.position, gc_block.values.xyz)) { FAIL(STATUS_GCODE_INVALID_TARGET); } // [Invalid target]
           
             // Convert radius value to proper units.
             if (gc_block.modal.units == UNITS_MODE_INCHES) { gc_block.values.r *= MM_PER_INCH; }
@@ -808,14 +806,17 @@ uint8_t gc_execute_line(char *line)
             }
           }
           break;
-        case MOTION_MODE_PROBE_TOWARD: case MOTION_MODE_PROBE_TOWARD_NO_ERROR:
-        case MOTION_MODE_PROBE_AWAY: case MOTION_MODE_PROBE_AWAY_NO_ERROR:
+        case MOTION_MODE_PROBE_TOWARD_NO_ERROR: case MOTION_MODE_PROBE_AWAY_NO_ERROR:
+          gc_parser_flags |= GC_PARSER_PROBE_IS_NO_ERROR; // No break intentional.
+        case MOTION_MODE_PROBE_TOWARD: case MOTION_MODE_PROBE_AWAY:
+          if ((gc_block.modal.motion == MOTION_MODE_PROBE_AWAY) || 
+              (gc_block.modal.motion == MOTION_MODE_PROBE_AWAY_NO_ERROR)) { gc_parser_flags |= GC_PARSER_PROBE_IS_AWAY; }
           // [G38 Errors]: Target is same current. No axis words. Cutter compensation is enabled. Feed rate
           //   is undefined. Probe is triggered. NOTE: Probe check moved to probe cycle. Instead of returning
           //   an error, it issues an alarm to prevent further motion to the probe. It's also done there to 
           //   allow the planner buffer to empty and move off the probe trigger before another probing cycle.
           if (!axis_words) { FAIL(STATUS_GCODE_NO_AXIS_WORDS); } // [No axis words]
-          if (gc_check_same_position(gc_state.position, gc_block.values.xyz)) { FAIL(STATUS_GCODE_INVALID_TARGET); } // [Invalid target]
+          if (isequal_position_vector(gc_state.position, gc_block.values.xyz)) { FAIL(STATUS_GCODE_INVALID_TARGET); } // [Invalid target]
           break;
       } 
     }
@@ -825,34 +826,112 @@ uint8_t gc_execute_line(char *line)
 
   // [0. Non-specific error-checks]: Complete unused value words check, i.e. IJK used when in arc
   // radius mode, or axis words that aren't used in the block.  
+  if (gc_parser_flags & GC_PARSER_JOG_MOTION) {
+    // Jogging only uses the F feed rate and XYZ value words. N is valid, but S and T are invalid.
+    bit_false(value_words,(bit(WORD_N)|bit(WORD_F)));
+  } else {
   bit_false(value_words,(bit(WORD_N)|bit(WORD_F)|bit(WORD_S)|bit(WORD_T))); // Remove single-meaning value words. 
+  }
   if (axis_command) { bit_false(value_words,(bit(WORD_X)|bit(WORD_Y)|bit(WORD_Z))); } // Remove axis words. 
   if (value_words) { FAIL(STATUS_GCODE_UNUSED_WORDS); } // [Unused words]
 
-   
   /* -------------------------------------------------------------------------------------
      STEP 4: EXECUTE!!
      Assumes that all error-checking has been completed and no failure modes exist. We just
      need to update the state and execute the block according to the order-of-execution.
   */ 
   
+  // Initialize planner data struct for motion blocks.
+  plan_line_data_t plan_data;
+  plan_line_data_t *pl_data = &plan_data;
+  memset(pl_data,0,sizeof(plan_line_data_t)); // Zero pl_data struct
+
+  // Intercept jog commands and complete error checking for valid jog commands and execute.
+  // NOTE: G-code parser state is not updated, except the position to ensure sequential jog
+  // targets are computed correctly. The final parser position after a jog is updated in
+  // protocol_execute_realtime() when jogging completes or is canceled.
+  if (gc_parser_flags & GC_PARSER_JOG_MOTION) {
+    // Only distance and unit modal commands and G53 absolute override command are allowed.
+    // NOTE: Feed rate word and axis word checks have already been performed in STEP 3.
+    if (command_words & ~(bit(MODAL_GROUP_G3) | bit(MODAL_GROUP_G6 | bit(MODAL_GROUP_G0))) ) { FAIL(STATUS_INVALID_JOG_COMMAND) };
+    if (!(gc_block.non_modal_command == NON_MODAL_ABSOLUTE_OVERRIDE || gc_block.non_modal_command == NON_MODAL_NO_ACTION)) { FAIL(STATUS_INVALID_JOG_COMMAND); }
+
+    // Initialize planner data to current spindle and coolant modal state.
+    pl_data->spindle_speed = gc_state.spindle_speed;
+    plan_data.condition = (gc_state.modal.spindle | gc_state.modal.coolant);
+
+    uint8_t status = jog_execute(&plan_data, &gc_block);
+    if (status == STATUS_OK) { memcpy(gc_state.position, gc_block.values.xyz, sizeof(gc_block.values.xyz)); }
+    return(status);
+  }
+  
+  // If in laser mode, setup laser power based on current and past parser conditions.
+  if (bit_istrue(settings.flags,BITFLAG_LASER_MODE)) {
+    if ( !((gc_block.modal.motion == MOTION_MODE_LINEAR) || (gc_block.modal.motion == MOTION_MODE_CW_ARC) 
+        || (gc_block.modal.motion == MOTION_MODE_CCW_ARC)) ) {
+      gc_parser_flags |= GC_PARSER_LASER_DISABLE;
+    }
+
+    // Any motion mode with axis words is allowed to be passed from a spindle speed update. 
+    // NOTE: G1 and G0 without axis words sets axis_command to none. G28/30 are intentionally omitted.
+    // TODO: Check sync conditions for M3 enabled motions that don't enter the planner. (zero length).
+    if (axis_words && (axis_command == AXIS_COMMAND_MOTION_MODE)) { 
+      gc_parser_flags |= GC_PARSER_LASER_ISMOTION; 
+    } else {
+      // M3 constant power laser requires planner syncs to update the laser when changing between
+      // a G1/2/3 motion mode state and vice versa when there is no motion in the line.
+      if (gc_state.modal.spindle == SPINDLE_ENABLE_CW) {
+        if ((gc_state.modal.motion == MOTION_MODE_LINEAR) || (gc_state.modal.motion == MOTION_MODE_CW_ARC) 
+            || (gc_state.modal.motion == MOTION_MODE_CCW_ARC)) {
+          if (bit_istrue(gc_parser_flags,GC_PARSER_LASER_DISABLE)) { 
+            gc_parser_flags |= GC_PARSER_LASER_FORCE_SYNC; // Change from G1/2/3 motion mode.
+          }
+        } else {
+          // When changing to a G1 motion mode without axis words from a non-G1/2/3 motion mode.
+          if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_DISABLE)) { 
+            gc_parser_flags |= GC_PARSER_LASER_FORCE_SYNC;
+          }
+        } 
+      }
+    }
+  }
+
   // [0. Non-specific/common error-checks and miscellaneous setup]: 
+  // NOTE: If no line number is present, the value is zero.
   gc_state.line_number = gc_block.values.n;
+  #ifdef USE_LINE_NUMBERS
+    pl_data->line_number = gc_state.line_number; // Record data for planner use.
+  #endif
   
   // [1. Comments feedback ]:  NOT SUPPORTED
   
   // [2. Set feed rate mode ]:
   gc_state.modal.feed_rate = gc_block.modal.feed_rate;
+  if (gc_state.modal.feed_rate) { pl_data->condition |= PL_COND_FLAG_INVERSE_TIME; } // Set condition flag for planner use.
   
   // [3. Set feed rate ]:
   gc_state.feed_rate = gc_block.values.f; // Always copy this value. See feed rate error-checking.
+  pl_data->feed_rate = gc_state.feed_rate; // Record data for planner use.
 
   // [4. Set spindle speed ]:
-  if (gc_state.spindle_speed != gc_block.values.s) { 
-    // Update running spindle only if not in check mode and not already enabled.
-    if (gc_state.modal.spindle != SPINDLE_DISABLE) { spindle_run(gc_state.modal.spindle, gc_block.values.s); }
-    gc_state.spindle_speed = gc_block.values.s; 
+  if ((gc_state.spindle_speed != gc_block.values.s) || bit_istrue(gc_parser_flags,GC_PARSER_LASER_FORCE_SYNC)) {
+    if (gc_state.modal.spindle != SPINDLE_DISABLE) { 
+      #ifdef VARIABLE_SPINDLE
+        if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_ISMOTION)) {
+          if (bit_istrue(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
+             spindle_sync(gc_state.modal.spindle, 0.0);
+          } else { spindle_sync(gc_state.modal.spindle, gc_block.values.s); }
+        }
+      #else
+        spindle_sync(gc_state.modal.spindle, 0.0);
+      #endif
   }
+    gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
+  }
+  // NOTE: Pass zero spindle speed for all restricted laser motions.
+  if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
+    pl_data->spindle_speed = gc_state.spindle_speed; // Record data for planner use. 
+  } // else { pl_data->spindle_speed = 0.0; } // Initialized as zero already.
     
   // [5. Select tool ]: NOT SUPPORTED. Only tracks tool value.
   gc_state.tool = gc_block.values.t;
@@ -862,17 +941,30 @@ uint8_t gc_execute_line(char *line)
   // [7. Spindle control ]:
   if (gc_state.modal.spindle != gc_block.modal.spindle) {
     // Update spindle control and apply spindle speed when enabling it in this block.    
-    spindle_run(gc_block.modal.spindle, gc_state.spindle_speed);
+    // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
+    // rather than gc_state, is used to manage laser state for non-laser motions.
+    spindle_sync(gc_block.modal.spindle, pl_data->spindle_speed);
     gc_state.modal.spindle = gc_block.modal.spindle;    
   }
+  pl_data->condition |= gc_state.modal.spindle; // Set condition flag for planner use.
 
   // [8. Coolant control ]:  
   if (gc_state.modal.coolant != gc_block.modal.coolant) {
-    coolant_run(gc_block.modal.coolant);
-    gc_state.modal.coolant = gc_block.modal.coolant;
+    // NOTE: Coolant M-codes are modal. Only one command per line is allowed. But, multiple states
+    // can exist at the same time, while coolant disable clears all states.
+    coolant_sync(gc_block.modal.coolant);
+    if (gc_block.modal.coolant == COOLANT_DISABLE) { gc_state.modal.coolant = COOLANT_DISABLE; }
+    else { gc_state.modal.coolant |= gc_block.modal.coolant; }
   }
+  pl_data->condition |= gc_state.modal.coolant; // Set condition flag for planner use.
   
-  // [9. Enable/disable feed rate or spindle overrides ]: NOT SUPPORTED
+  // [9. Override control ]: NOT SUPPORTED. Always enabled. Except for a Grbl-only parking control.
+  #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+    if (gc_state.modal.override != gc_block.modal.override) {
+      gc_state.modal.override = gc_block.modal.override;
+      mc_override_ctrl_update(gc_state.modal.override);
+    }
+  #endif
 
   // [10. Dwell ]:
   if (gc_block.non_modal_command == NON_MODAL_DWELL) { mc_dwell(gc_block.values.p); }
@@ -892,17 +984,20 @@ uint8_t gc_execute_line(char *line)
   // axis of the block XYZ value array. 
   if (axis_command == AXIS_COMMAND_TOOL_LENGTH_OFFSET ) { // Indicates a change.
     gc_state.modal.tool_length = gc_block.modal.tool_length;
-    if (gc_state.modal.tool_length == TOOL_LENGTH_OFFSET_ENABLE_DYNAMIC) { // G43.1
+    if (gc_state.modal.tool_length == TOOL_LENGTH_OFFSET_CANCEL) { // G49
+      gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS] = 0.0;
+    } // else G43.1
+    if ( gc_state.tool_length_offset != gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS] ) {
       gc_state.tool_length_offset = gc_block.values.xyz[TOOL_LENGTH_OFFSET_AXIS];
-    } else { // G49
-      gc_state.tool_length_offset = 0.0;
+      system_flag_wco_change();
     }
   }
   
   // [15. Coordinate system selection ]:
   if (gc_state.modal.coord_select != gc_block.modal.coord_select) {
     gc_state.modal.coord_select = gc_block.modal.coord_select;
-    memcpy(gc_state.coord_system,coordinate_data,sizeof(coordinate_data));
+    memcpy(gc_state.coord_system,block_coord_system,N_AXIS*sizeof(float));
+    system_flag_wco_change();
   }
   
   // [16. Set path control mode ]: G61.1/G64 NOT SUPPORTED
@@ -916,26 +1011,20 @@ uint8_t gc_execute_line(char *line)
   // [19. Go to predefined position, Set G10, or Set axis offsets ]:
   switch(gc_block.non_modal_command) {
     case NON_MODAL_SET_COORDINATE_DATA:    
-      settings_write_coord_data(coord_select,parameter_data);
+      settings_write_coord_data(coord_select,gc_block.values.ijk);
       // Update system coordinate system if currently active.
-      if (gc_state.modal.coord_select == coord_select) { memcpy(gc_state.coord_system,parameter_data,sizeof(parameter_data)); }
+      if (gc_state.modal.coord_select == coord_select) {
+        memcpy(gc_state.coord_system,gc_block.values.ijk,N_AXIS*sizeof(float));
+        system_flag_wco_change();
+      }
       break;
     case NON_MODAL_GO_HOME_0: case NON_MODAL_GO_HOME_1: 
       // Move to intermediate position before going home. Obeys current coordinate system and offsets 
       // and absolute and incremental modes.
-      if (axis_command) {
-        #ifdef USE_LINE_NUMBERS
-          mc_line(gc_block.values.xyz, -1.0, false, gc_state.line_number);
-        #else
-          mc_line(gc_block.values.xyz, -1.0, false);
-        #endif
-      }
-      #ifdef USE_LINE_NUMBERS
-        mc_line(parameter_data, -1.0, false, gc_state.line_number); 
-      #else
-        mc_line(parameter_data, -1.0, false); 
-      #endif
-      memcpy(gc_state.position, parameter_data, sizeof(parameter_data));
+      pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
+      if (axis_command) { mc_line(gc_block.values.xyz, pl_data); }
+      mc_line(gc_block.values.ijk, pl_data);
+      memcpy(gc_state.position, gc_block.values.ijk, N_AXIS*sizeof(float));
       break;
     case NON_MODAL_SET_HOME_0: 
       settings_write_coord_data(SETTING_INDEX_G28,gc_state.position);
@@ -945,9 +1034,11 @@ uint8_t gc_execute_line(char *line)
       break;
     case NON_MODAL_SET_COORDINATE_OFFSET:
       memcpy(gc_state.coord_offset,gc_block.values.xyz,sizeof(gc_block.values.xyz));
+      system_flag_wco_change();
       break;
     case NON_MODAL_RESET_COORDINATE_OFFSET: 
       clear_vector(gc_state.coord_offset); // Disable G92 offsets by zeroing offset vector.
+      system_flag_wco_change();
       break;
   }
 
@@ -958,74 +1049,32 @@ uint8_t gc_execute_line(char *line)
   gc_state.modal.motion = gc_block.modal.motion;
   if (gc_state.modal.motion != MOTION_MODE_NONE) {
     if (axis_command == AXIS_COMMAND_MOTION_MODE) {
-      switch (gc_state.modal.motion) {
-        case MOTION_MODE_SEEK:
-          #ifdef USE_LINE_NUMBERS
-            mc_line(gc_block.values.xyz, -1.0, false, gc_state.line_number);
-          #else
-            mc_line(gc_block.values.xyz, -1.0, false);
-          #endif
-          break;
-        case MOTION_MODE_LINEAR:
-          #ifdef USE_LINE_NUMBERS
-            mc_line(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, gc_state.line_number);
-          #else
-            mc_line(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate);
-          #endif
-          break;
-        case MOTION_MODE_CW_ARC: 
-          #ifdef USE_LINE_NUMBERS
-            mc_arc(gc_state.position, gc_block.values.xyz, gc_block.values.ijk, gc_block.values.r, 
-              gc_state.feed_rate, gc_state.modal.feed_rate, axis_0, axis_1, axis_linear, true, gc_state.line_number);  
-          #else
-            mc_arc(gc_state.position, gc_block.values.xyz, gc_block.values.ijk, gc_block.values.r, 
-              gc_state.feed_rate, gc_state.modal.feed_rate, axis_0, axis_1, axis_linear, true); 
-          #endif
-          break;        
-        case MOTION_MODE_CCW_ARC:
-          #ifdef USE_LINE_NUMBERS
-            mc_arc(gc_state.position, gc_block.values.xyz, gc_block.values.ijk, gc_block.values.r, 
-              gc_state.feed_rate, gc_state.modal.feed_rate, axis_0, axis_1, axis_linear, false, gc_state.line_number);  
-          #else
-            mc_arc(gc_state.position, gc_block.values.xyz, gc_block.values.ijk, gc_block.values.r, 
-              gc_state.feed_rate, gc_state.modal.feed_rate, axis_0, axis_1, axis_linear, false); 
-          #endif
-          break;
-        case MOTION_MODE_PROBE_TOWARD: 
+      uint8_t gc_update_pos = GC_UPDATE_POS_TARGET;
+      if (gc_state.modal.motion == MOTION_MODE_LINEAR) {
+        mc_line(gc_block.values.xyz, pl_data);
+      } else if (gc_state.modal.motion == MOTION_MODE_SEEK) {
+        pl_data->condition |= PL_COND_FLAG_RAPID_MOTION; // Set rapid motion condition flag.
+        mc_line(gc_block.values.xyz, pl_data);
+      } else if ((gc_state.modal.motion == MOTION_MODE_CW_ARC) || (gc_state.modal.motion == MOTION_MODE_CCW_ARC)) {
+        mc_arc(gc_block.values.xyz, pl_data, gc_state.position, gc_block.values.ijk, gc_block.values.r,
+            axis_0, axis_1, axis_linear, bit_istrue(gc_parser_flags,GC_PARSER_ARC_IS_CLOCKWISE));
+      } else {
           // NOTE: gc_block.values.xyz is returned from mc_probe_cycle with the updated position value. So
           // upon a successful probing cycle, the machine position and the returned value should be the same.
-          #ifdef USE_LINE_NUMBERS
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, false, false, gc_state.line_number);
-          #else
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, false, false);
+        #ifndef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
+          pl_data->condition |= PL_COND_FLAG_NO_FEED_OVERRIDE;
           #endif
-          break;
-        case MOTION_MODE_PROBE_TOWARD_NO_ERROR:
-          #ifdef USE_LINE_NUMBERS
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, false, true, gc_state.line_number);
-          #else
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, false, true);
-          #endif
-          break;
-        case MOTION_MODE_PROBE_AWAY:
-          #ifdef USE_LINE_NUMBERS
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, true, false, gc_state.line_number);
-          #else
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, true, false);
-          #endif
-          break;
-        case MOTION_MODE_PROBE_AWAY_NO_ERROR:
-          #ifdef USE_LINE_NUMBERS
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, true, true, gc_state.line_number);
-          #else        
-            mc_probe_cycle(gc_block.values.xyz, gc_state.feed_rate, gc_state.modal.feed_rate, true, true);
-          #endif
+        gc_update_pos = mc_probe_cycle(gc_block.values.xyz, pl_data, gc_parser_flags);
       }
     
       // As far as the parser is concerned, the position is now == target. In reality the
       // motion control system might still be processing the action and the real tool position
       // in any intermediate location.
+      if (gc_update_pos == GC_UPDATE_POS_TARGET) {
       memcpy(gc_state.position, gc_block.values.xyz, sizeof(gc_block.values.xyz)); // gc_state.position[] = gc_block.values.xyz[]
+      } else if (gc_update_pos == GC_UPDATE_POS_SYSTEM) {
+        gc_sync_position(); // gc_state.position[] = sys_position
+      } // == GC_UPDATE_POS_NONE
     }
   }
   
@@ -1037,7 +1086,7 @@ uint8_t gc_execute_line(char *line)
 	protocol_buffer_synchronize(); // Sync and finish all remaining buffered motions before moving on.
 	if (gc_state.modal.program_flow == PROGRAM_FLOW_PAUSED) {
 	  if (sys.state != STATE_CHECK_MODE) {
-		bit_true_atomic(sys_rt_exec_state, EXEC_FEED_HOLD); // Use feed hold for program pause.
+        system_set_exec_state_flag(EXEC_FEED_HOLD); // Use feed hold for program pause.
 		protocol_execute_realtime(); // Execute suspend.
 	  }
 	} else { // == PROGRAM_FLOW_COMPLETED
@@ -1053,22 +1102,34 @@ uint8_t gc_execute_line(char *line)
 	  gc_state.modal.coord_select = 0; // G54
 	  gc_state.modal.spindle = SPINDLE_DISABLE;
 	  gc_state.modal.coolant = COOLANT_DISABLE;
-	  // gc_state.modal.override = OVERRIDE_DISABLE; // Not supported.
+      #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
+        #ifdef DEACTIVATE_PARKING_UPON_INIT
+          gc_state.modal.override = OVERRIDE_DISABLED;
+        #else
+          gc_state.modal.override = OVERRIDE_PARKING_MOTION;
+        #endif
+      #endif
+
+      #ifdef RESTORE_OVERRIDES_AFTER_PROGRAM_END
+        sys.f_override = DEFAULT_FEED_OVERRIDE;
+        sys.r_override = DEFAULT_RAPID_OVERRIDE;
+        sys.spindle_speed_ovr = DEFAULT_SPINDLE_SPEED_OVERRIDE;
+      #endif
 	  
 	  // Execute coordinate change and spindle/coolant stop.
 	  if (sys.state != STATE_CHECK_MODE) {
-		if (!(settings_read_coord_data(gc_state.modal.coord_select,coordinate_data))) { FAIL(STATUS_SETTING_READ_FAIL); } 
-		memcpy(gc_state.coord_system,coordinate_data,sizeof(coordinate_data));
-		spindle_stop();
-		coolant_stop();		
+        if (!(settings_read_coord_data(gc_state.modal.coord_select,gc_state.coord_system))) { FAIL(STATUS_SETTING_READ_FAIL); }
+        system_flag_wco_change(); // Set to refresh immediately just in case something altered.
+        spindle_set_state(SPINDLE_DISABLE,0.0);
+        coolant_set_state(COOLANT_DISABLE);
 	  }
-	  
 	  report_feedback_message(MESSAGE_PROGRAM_END);
 	}
     gc_state.modal.program_flow = PROGRAM_FLOW_RUNNING; // Reset program flow.
   }
     
   // TODO: % to denote start of program.
+
   return(STATUS_OK);
 }
         
@@ -1092,8 +1153,8 @@ uint8_t gc_execute_line(char *line)
    group 6 = {M6} (Tool change)
    group 7 = {G41, G42} cutter radius compensation (G40 is supported)
    group 8 = {G43} tool length offset (G43.1/G49 are supported)
-   group 8 = {*M7} enable mist coolant (* Compile-option)
-   group 9 = {M48, M49} enable/disable feed and speed override switches
+   group 8 = {M7*} enable mist coolant (* Compile-option)
+   group 9 = {M48, M49, M56*} enable/disable override switches (* Compile-option)
    group 10 = {G98, G99} return mode canned cycles
    group 13 = {G61.1, G64} path control mode (G61 is supported)
 */

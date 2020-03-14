@@ -2,8 +2,8 @@
   print.c - Functions for formatting output strings
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2011-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
@@ -65,36 +65,37 @@ void printPgmString(const char *s)
 // }
 
 
-// Prints an uint8 variable with base and number of desired digits.
-void print_unsigned_int8(uint8_t n, uint8_t base, uint8_t digits)
+// Prints an uint8 variable in base 10.
+void print_uint8_base10(uint8_t n)
 { 
+  uint8_t digit_a = 0;
+  uint8_t digit_b = 0;
+  if (n >= 100) { // 100-255
+    digit_a = '0' + n % 10;
+    n /= 10;
+  }
+  if (n >= 10) { // 10-99
+    digit_b = '0' + n % 10;
+    n /= 10;
+  }
+  serial_write('0' + n);
+  if (digit_b) { serial_write(digit_b); }
+  if (digit_a) { serial_write(digit_a); }
+}
+
+
+// Prints an uint8 variable in base 2 with desired number of desired digits.
+void print_uint8_base2_ndigit(uint8_t n, uint8_t digits) {
   unsigned char buf[digits];
   uint8_t i = 0;
 
   for (; i < digits; i++) {
-      buf[i] = n % base ;
-      n /= base;
+      buf[i] = n % 2 ;
+      n /= 2;
   }
 
   for (; i > 0; i--)
       serial_write('0' + buf[i - 1]);
-}
-
-
-// Prints an uint8 variable in base 2.
-void print_uint8_base2(uint8_t n) {
-  print_unsigned_int8(n,2,8);
-}
-
-
-// Prints an uint8 variable in base 10.
-void print_uint8_base10(uint8_t n)
-{   
-  uint8_t digits;
-  if (n < 10) { digits = 1; } 
-  else if (n < 100) { digits = 2; }
-  else { digits = 3; }
-  print_unsigned_int8(n,10,digits);
 }
 
 
@@ -153,9 +154,7 @@ void printFloat(float n, uint8_t decimal_places)
   unsigned char buf[10]; 
   uint8_t i = 0;
   uint32_t a = (long)n;  
-  buf[decimal_places] = '.'; // Place decimal point, even if decimal places are zero.
   while(a > 0) {
-    if (i == decimal_places) { i++; } // Skip decimal point location
     buf[i++] = (a % 10) + '0'; // Get digit
     a /= 10;
   }
@@ -163,13 +162,14 @@ void printFloat(float n, uint8_t decimal_places)
      buf[i++] = '0'; // Fill in zeros to decimal point for (n < 1)
   }
   if (i == decimal_places) { // Fill in leading zero, if needed.
-    i++;
     buf[i++] = '0'; 
   }   
   
   // Print the generated string.
-  for (; i > 0; i--)
+  for (; i > 0; i--) {
+    if (i == decimal_places) { serial_write('.'); } // Insert decimal point in right place.
     serial_write(buf[i-1]);
+  }
 }
 
 
@@ -177,7 +177,6 @@ void printFloat(float n, uint8_t decimal_places)
 // in the config.h.
 //  - CoordValue: Handles all position or coordinate values in inches or mm reporting.
 //  - RateValue: Handles feed rate and current velocity in inches or mm reporting.
-//  - SettingValue: Handles all floating point settings values (always in mm.)
 void printFloat_CoordValue(float n) { 
   if (bit_istrue(settings.flags,BITFLAG_REPORT_INCHES)) { 
     printFloat(n*INCH_PER_MM,N_DECIMAL_COORDVALUE_INCH);
@@ -193,9 +192,6 @@ void printFloat_RateValue(float n) {
     printFloat(n,N_DECIMAL_RATEVALUE_MM);
   }
 }
-
-void printFloat_SettingValue(float n) { printFloat(n,N_DECIMAL_SETTINGVALUE); }
-
 
 // Debug tool to print free memory in bytes at the called point. 
 // NOTE: Keep commented unless using. Part of this function always gets compiled in.

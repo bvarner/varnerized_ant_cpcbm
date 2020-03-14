@@ -1,7 +1,7 @@
 /*
  * This file is part of the grbl_port_opencm3 project.
  *
- * Copyright (c) 2017 Angelo Di Chello
+ * Copyright (c) 2017-2020 Angelo Di Chello
  *
  * Grbl_port_opencm3 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

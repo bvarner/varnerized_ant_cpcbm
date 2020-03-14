@@ -186,8 +186,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Configurable compilation script start.')
     parser.add_argument('-f', '--flagsFile', help='File that contains the compilation flags to be used. Every line is a build type.', default='flags_combos.txt')
     parser.add_argument('-t', '--toolPathsFile', help='File that contains the paths of the tools to use to build the application. Every line is a tool path.')
-    parser.add_argument('-maj', '--majorVersion', type=int, default=0, help='Version MAJOR number')
-    parser.add_argument('-min', '--minorVersion', type=int, default=9, help='Version minor number')
+    parser.add_argument('-maj', '--majorVersion', type=int, default=1, help='Version MAJOR number')
+    parser.add_argument('-min', '--minorVersion', type=int, default=1, help='Version minor number')
     parser.add_argument('-bui', '--buildVersion', type=int, default=0, help='Version build number')
     parser.add_argument('-l', '--logLevel', default='info',choices=['notset','debug','info','warning','error','critical'], help='Logging level.')
 

@@ -2,8 +2,8 @@
   protocol.h - controls Grbl execution protocol and procedures
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2011-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
@@ -39,15 +39,7 @@ void protocol_main_loop(void);
 
 // Checks and executes a realtime command at various stop points in main program
 void protocol_execute_realtime(void);
-
-// Notify the stepper subsystem to start executing the g-code program in buffer.
-// void protocol_cycle_start();
-
-// Reinitializes the buffer after a feed hold for a resume.
-// void protocol_cycle_reinitialize(); 
-
-// Initiates a feed hold of the running program
-// void protocol_feed_hold();
+void protocol_exec_rt_system(void);
 
 // Executes the auto cycle feature, if enabled.
 void protocol_auto_cycle_start(void);

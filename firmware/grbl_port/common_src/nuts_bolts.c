@@ -2,8 +2,8 @@
   nuts_bolts.c - Shared functions
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2011-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
@@ -107,10 +107,6 @@ uint8_t read_float(char *line, uint8_t *char_counter, float *float_ptr)
   
   return(true);
 }
-
-
-// Simple hypotenuse computation function.
-float hypot_f(float x, float y) { return(sqrt(x*x + y*y)); }
 
 #ifdef NUCLEO
 
@@ -254,6 +250,15 @@ void delay_1_ms()
 
 
 #else
+
+// Delays variable defined milliseconds. Compiler compatibility fix for _delay_ms(),
+// which only accepts constants in future compiler releases.
+void delay_ms(uint16_t ms)
+{
+  while ( ms-- ) { _delay_ms(1); }
+}
+
+
 // Delays variable defined microseconds. Compiler compatibility fix for _delay_us(),
 // which only accepts constants in future compiler releases. Written to perform more 
 // efficiently with larger delays, as the counter adds parasitic time in each iteration.
@@ -277,4 +282,51 @@ void delay_us(uint32_t us)
 }
 #endif
 
+// Non-blocking delay function used for general operation and suspend features.
+void delay_sec(float seconds, uint8_t mode)
+{
+ 	uint16_t i = ceil(1000/DWELL_TIME_STEP*seconds);
+	while (i-- > 0) {
+		if (sys.abort) { return; }
+		if (mode == DELAY_MODE_DWELL) {
+			protocol_execute_realtime();
+		} else { // DELAY_MODE_SYS_SUSPEND
+		  // Execute rt_system() only to avoid nesting suspend loops.
+		  protocol_exec_rt_system();
+		  if (sys.suspend & SUSPEND_RESTART_RETRACT) { return; } // Bail, if safety door reopens.
+		}
+		_delay_ms(DWELL_TIME_STEP); // Delay DWELL_TIME_STEP increment
+	}
+}
 
+// Simple hypotenuse computation function.
+float hypot_f(float x, float y) { return(sqrt(x*x + y*y)); }
+
+
+float convert_delta_vector_to_unit_vector(float *vector)
+{
+  uint8_t idx;
+  float magnitude = 0.0;
+  for (idx=0; idx<N_AXIS; idx++) {
+    if (vector[idx] != 0.0) {
+      magnitude += vector[idx]*vector[idx];
+    }
+  }
+  magnitude = sqrt(magnitude);
+  float inv_magnitude = 1.0/magnitude;
+  for (idx=0; idx<N_AXIS; idx++) { vector[idx] *= inv_magnitude; }
+  return(magnitude);
+}
+
+
+float limit_value_by_axis_maximum(float *max_value, float *unit_vec)
+{
+  uint8_t idx;
+  float limit_value = SOME_LARGE_VALUE;
+  for (idx=0; idx<N_AXIS; idx++) {
+    if (unit_vec[idx] != 0) {  // Avoid divide by zero.
+      limit_value = min(limit_value,fabs(max_value[idx]/unit_vec[idx]));
+    }
+  }
+  return(limit_value);
+}

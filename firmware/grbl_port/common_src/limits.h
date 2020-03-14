@@ -2,8 +2,8 @@
   limits.h - code pertaining to limit-switches and performing the homing cycle
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2012-2015 Sungeun K. Jeon  
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC 
   Copyright (c) 2009-2011 Simen Svale Skogsrud
   
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify

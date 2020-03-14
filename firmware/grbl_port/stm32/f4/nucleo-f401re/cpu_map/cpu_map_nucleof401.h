@@ -2,7 +2,7 @@
   cpu_map_nucleof401.h - CPU and pin mapping configuration file for NUCLEO F401 board.
   Part of grbl_port_opencm3 project.
 
-  Copyright (c) 2017 Angelo Di Chello
+  Copyright (c) 2017-2020 Angelo Di Chello
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -93,6 +93,7 @@
 #define SPINDLE_TIMER_RST      RST_TIM3
 #define SPINDLE_TIMER_CHAN     TIM_OC1
 #define SPINDLE_TIMER_PWM_TYPE TIM_OCM_PWM1
+#define SPINDLE_TIMER_OFF_TYPE TIM_OCM_FORCE_LOW
 #define SPINDLE_GPIO_GROUP     GPIOA
 #define SPINDLE_GPIO_AF        GPIO_AF2
 #define SPINDLE_GPIO           GPIO6
@@ -212,7 +213,7 @@
 #define LIMIT_MASK                (LIMIT_X_MASK | LIMIT_Y_MASK | LIMIT_Z_MASK)
 //#define INVERT_LIMIT_PIN_MASK     (LIMIT_MASK)
 #define LIMIT_X_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Y_EXTI)
-#define LIMIT_Y_EXTI_CLEAR       (LIMIT_Y_EXTI | LIMIT_X_EXTI)
+#define LIMIT_Y_EXTI_CLEAR       (LIMIT_X_EXTI | LIMIT_Y_EXTI)
 #define LIMIT_Z_EXTI_CLEAR       (LIMIT_Z_EXTI)
 
 /* Interrupt defines for LIMIT PINS */
@@ -278,8 +279,13 @@
 
 #define CONTROL_INT_vect  (RESET_CONTROL_INT_vect | FEED_HOLD_CONTROL_INT_vect | CYCLE_START_CONTROL_INT_vect | SAFETY_DOOR_CONTROL_INT_vect)
 
-//#define CONTROL_MASK ((1<<RESET_BIT)|(1<<FEED_HOLD_BIT)|(1<<CYCLE_START_BIT)|(1<<SAFETY_DOOR_BIT))
-//#define CONTROL_INVERT_MASK CONTROL_MASK // May be re-defined to only invert certain control pins.
+// Re-Define user-control controls (cycle start, reset, feed hold) input pins.
+#define CONTROL_RESET_BIT         RESET_BIT
+#define CONTROL_FEED_HOLD_BIT     FEED_HOLD_BIT
+#define CONTROL_CYCLE_START_BIT   CYCLE_START_BIT
+#define CONTROL_SAFETY_DOOR_BIT   SAFETY_DOOR_BIT
+#define CONTROL_MASK ((1<<RESET_BIT)|(1<<FEED_HOLD_BIT)|(1<<CYCLE_START_BIT)|(1<<SAFETY_DOOR_BIT))
+#define CONTROL_INVERT_MASK CONTROL_MASK // May be re-defined to only invert certain control pins.
 
 
 // Define probe switch input pin.
@@ -319,9 +325,12 @@
 
 // Start of PWM & Stepper Enabled Spindle
 #ifdef VARIABLE_SPINDLE
-  // Advanced Configuration Below You should not need to touch these variables
-  // Set Timer up to use TIMER4B which is attached to Digital Pin 7
-  #define PWM_MAX_VALUE       256.0
+  #define SPINDLE_PWM_MAX_VALUE     settings.spindle_pwm_max_time_on // Don't change. 328p fast PWM mode fixes top value as 255.
+  #ifndef SPINDLE_PWM_MIN_VALUE
+    #define SPINDLE_PWM_MIN_VALUE   settings.spindle_pwm_min_time_on   // Must be greater than zero.
+  #endif
+  #define SPINDLE_PWM_OFF_VALUE     0
+  #define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
   
   #define SPINDLE_PWM_DDR               GPIOA_MODER
   #define SPINDLE_PWM_PORT              GPIOA_ODR
@@ -443,6 +452,13 @@
 #define GET_LIMIT_PIN \
   ((LIMIT_X_PIN & LIMIT_X_MASK) | (LIMIT_Y_PIN & LIMIT_Y_MASK) | (LIMIT_Z_PIN & LIMIT_Z_MASK))
 
+/* get controls pin status */
+#define GET_CONTROLS_PIN \
+  ((RESET_CONTROL_PIN & RESET_CONTROL_MASK) | \
+   (FEED_HOLD_CONTROL_PIN & FEED_HOLD_MASK) | \
+   (CYCLE_START_CONTROL_PIN & CYCLE_START_MASK) | \
+   (SAFETY_DOOR_CONTROL_PIN & SAFETY_DOOR_MASK))
+
 /* set control pins as inputs */
 #define SET_CONTROLS_DDR \
   do { \
@@ -474,6 +490,9 @@
     SAFETY_DOOR_CONTROL_PU  |= SAFETY_DOOR_PU_MASK; \
   } while (0)
 
+#define GET_SPINDLE_DIRECTION_PIN \
+  (SPINDLE_DIRECTION_PORT & SPINDLE_DIRECTION_MASK)
+
 #define SET_SPINDLE_DIRECTION_DDR \
   do { \
     SPINDLE_DIRECTION_DDR &= ~SPINDLE_DIRECTION_DDR_RESET_MASK; \
@@ -502,6 +521,9 @@
     SPINDLE_ENABLE_DDR |= SPINDLE_ENABLE_MASK_DDR; \
   } while (0)
       
+#define GET_SPINDLE_ENABLE \
+  (SPINDLE_ENABLE_PORT & SPINDLE_ENABLE_MASK)
+
 /* Set spindle enable pin */
 #define  SET_SPINDLE_ENABLE \
   do { \

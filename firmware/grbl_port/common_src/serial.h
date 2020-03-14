@@ -2,8 +2,8 @@
   serial.h - Low level functions for sending and recieving bytes via the serial port
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017 Angelo Di Chello
-  Copyright (c) 2011-2015 Sungeun K. Jeon
+  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 
 
 #ifndef RX_BUFFER_SIZE
-  #define RX_BUFFER_SIZE 2048
+  #define RX_BUFFER_SIZE 1024
 #endif
 #ifndef TX_BUFFER_SIZE
   #define TX_BUFFER_SIZE 256
@@ -33,16 +33,6 @@
 
 #define SERIAL_NO_DATA 0xff
 
-#ifdef ENABLE_XONXOFF
-  #define RX_BUFFER_FULL 96 // XOFF high watermark
-  #define RX_BUFFER_LOW 64 // XON low watermark
-  #define SEND_XOFF 1
-  #define SEND_XON 2
-  #define XOFF_SENT 3
-  #define XON_SENT 4
-  #define XOFF_CHAR 0x13
-  #define XON_CHAR 0x11
-#endif
 
 void serial_init(void);
 
@@ -55,7 +45,11 @@ uint8_t serial_read(void);
 // Reset and empty data in read buffer. Used by e-stop and reset.
 void serial_reset_read_buffer(void);
 
+// Returns the number of bytes available in the RX serial buffer.
+uint32_t serial_get_rx_buffer_available(void);
+
 // Returns the number of bytes used in the RX serial buffer.
+// NOTE: Deprecated. Not used unless classic status reports are enabled in config.h.
 uint32_t serial_get_rx_buffer_count(void);
 
 // Returns the number of bytes used in the TX serial buffer.
