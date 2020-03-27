@@ -1,3 +1,6 @@
+# Version 1.1.60 - 15-Mar-2020
+First GRBL version 1.1 porting, done preliminary test with cnc and laser that seem to work properly.  
+
 # Version 0.9.59 - 10-Mar-2020
 Added the homing debug feature that prints on serial which is the movement that is being executed and when a limit switch is pressed.  
 This debug is enabled with the setting $95 equal to 1, and disabled setting it to zero.  
