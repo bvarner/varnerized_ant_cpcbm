@@ -329,7 +329,7 @@
   #ifndef SPINDLE_PWM_MIN_VALUE
     #define SPINDLE_PWM_MIN_VALUE   settings.spindle_pwm_min_time_on   // Must be greater than zero.
   #endif
-  #define SPINDLE_PWM_OFF_VALUE     0
+  #define SPINDLE_PWM_OFF_VALUE     (settings.spindle_pwm_min_time_on)
   #define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
   
   #define SPINDLE_PWM_DDR               GPIOA_MODER
