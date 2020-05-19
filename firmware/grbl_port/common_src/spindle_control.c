@@ -256,7 +256,8 @@ void spindle_stop()
       }
     #else
       if (pwm_value == SPINDLE_PWM_OFF_VALUE) {
-        timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_OFF_TYPE); // Disable PWM. Output voltage is zero.
+        //timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_OFF_TYPE); // Disable PWM. Output voltage is zero.
+    	timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_PWM_OFF_VALUE);// Set PWM min level. TODO: If this is ok for both laser and spindle remove previous line.
       } else {
         timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_PWM_TYPE);; // Ensure PWM output is enabled.
       }
