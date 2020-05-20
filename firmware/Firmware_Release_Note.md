@@ -1,3 +1,7 @@
+# Version 1.1.62 - 19-May-2020
+Fix ESC PWM spindle going to zero instead of going to the minimum pwm value.
+This fix is not tested for the laser, at the moment, so don't use it to drive a laser head.
+
 # Version 1.1.60 - 15-Mar-2020
 First GRBL version 1.1 porting, done preliminary test with cnc and laser that seem to work properly.  
 
