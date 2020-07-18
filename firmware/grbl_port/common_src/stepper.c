@@ -41,7 +41,6 @@
 #define PREP_FLAG_HOLD_PARTIAL_BLOCK bit(1)
 #define PREP_FLAG_PARKING bit(2)
 #define PREP_FLAG_DECEL_OVERRIDE bit(3)
-#define TIMEOUT_COUNTER 100000
 
 // Define Adaptive Multi-Axis Step-Smoothing(AMASS) levels and cutoff frequencies. The highest level
 // frequency bin starts at 0Hz and ends at its cutoff frequency. The next lower level frequency bin
@@ -1211,9 +1210,6 @@ void st_prep_buffer()
         #endif
         return; // Bail!
       } else { // End of planner block
-    	// Check if there is any segment pending to be executed before discarding block
-    	volatile int index = 0;
-    	while((segment_buffer_tail != segment_buffer_head) && index < TIMEOUT_COUNTER){index++;}
 
         // The planner block is complete. All steps are set to be executed in the segment buffer.
         if (sys.step_control & STEP_CONTROL_EXECUTE_SYS_MOTION) {
