@@ -560,12 +560,6 @@ void spindle_set_state(uint8_t state, float rpm)
 
 #endif //NUCLEO_F401
 
-void spindle_run(uint8_t state, float rpm)
-{
-  if (sys.state == STATE_CHECK_MODE) { return; }
-  protocol_buffer_synchronize(); // Empty planner buffer to ensure spindle is set when programmed.  
-  spindle_set_state(state, rpm);
-}
 
 // G-code parser entry-point for setting spindle state. Forces a planner buffer sync and bails 
 // if an abort or check-mode is active.

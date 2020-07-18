@@ -74,10 +74,6 @@ uint8_t spindle_get_state(void);
   uint8_t spindle_compute_pwm_value(float rpm);
 #endif
 
-// Sets spindle direction and spindle rpm via PWM, if enabled.
-void spindle_run(uint8_t direction, float rpm);
-
-
 // Kills spindle.
 void spindle_stop(void);
 
