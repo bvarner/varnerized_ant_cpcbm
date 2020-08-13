@@ -1,3 +1,9 @@
+# Version 1.1.64 - 13-Aug-2020
+Improved robustness of serial communication.
+
+# Version 1.1.63 - 18-Jul-2020
+Removed blocking loop that could created timing issues.
+
 # Version 1.1.62 - 19-May-2020
 Fix ESC PWM spindle going to zero instead of going to the minimum pwm value.
 This fix is not tested for the laser, at the moment, so don't use it to drive a laser head.

@@ -154,7 +154,7 @@ void serial_write(uint8_t data) {
   serial_tx_buffer[serial_tx_buffer_head] = data;
   serial_tx_buffer_head = next_head;
 #ifdef NUCLEO
-	usart_enable_tx_interrupt(SERIAL_USART);
+	USART_CR1(SERIAL_USART) |= USART_CR1_TXEIE;
 #else
   // Enable Data Register Empty Interrupt to make sure tx-streaming is running
   UCSR0B |=  (1 << UDRIE0); 
@@ -186,7 +186,7 @@ void SERIAL_USART_ISR(void)
 #ifndef USE_RX_DMA
 	if(((USART_SR(SERIAL_USART) & USART_SR_RXNE)  & USART_CR1(SERIAL_USART)) != 0)
 	{		
-      uint8_t data = (uint8_t)(usart_recv(SERIAL_USART));
+      uint8_t data = (uint8_t)(USART_DR(SERIAL_USART) & USART_DR_MASK);
       uint32_t next_head;
 	  
 	  // Pick off realtime command characters directly from the serial stream. These characters are
@@ -245,8 +245,8 @@ void SERIAL_USART_ISR(void)
 	{
 		uint32_t tail = serial_tx_buffer_tail; // Temporary serial_tx_buffer_tail (to optimize for volatile)
 
-		// Send a byte from the buffer	
-        usart_send(SERIAL_USART, ((uint16_t)serial_tx_buffer[tail]));
+		// Send a byte from the buffer
+		USART_DR(SERIAL_USART) = (serial_tx_buffer[tail] & USART_DR_MASK);
 		// Update tail position
 		tail++;
 		if (tail == TX_RING_BUFFER) { tail = 0; }
@@ -377,11 +377,26 @@ void serial_rx_dma_init(void)
 	nvic_enable_irq(SERIAL_DMA_IRQ);
 }
 
+static inline void dma_clear_interrupt_flags_private(uint32_t dma, uint8_t stream,
+	       uint32_t interrupts)
+{
+/* Get offset to interrupt flag location in stream field */
+uint32_t flags = (interrupts << DMA_ISR_OFFSET(stream));
+/* First four streams are in low register. Flag clear must be set then
+* reset.
+*/
+if (stream < 4) {
+DMA_LIFCR(dma) = flags;
+} else {
+DMA_HIFCR(dma) = flags;
+}
+}
+
 void SERIAL_DMA_ISR()
 {
   uint32_t next_head;
 	/* Clear transfer complete interrupt flag */
-  dma_clear_interrupt_flags(SERIAL_DMA, SERIAL_DMA_STREAM, DMA_TCIF);
+  dma_clear_interrupt_flags_private(SERIAL_DMA, SERIAL_DMA_STREAM, DMA_TCIF);
 
     switch (serial_rx_dma_data)
     {
