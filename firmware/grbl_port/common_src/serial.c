@@ -380,22 +380,22 @@ void serial_rx_dma_init(void)
 static inline void dma_clear_interrupt_flags_private(uint32_t dma, uint8_t stream,
 	       uint32_t interrupts)
 {
-/* Get offset to interrupt flag location in stream field */
-uint32_t flags = (interrupts << DMA_ISR_OFFSET(stream));
-/* First four streams are in low register. Flag clear must be set then
-* reset.
-*/
-if (stream < 4) {
-DMA_LIFCR(dma) = flags;
-} else {
-DMA_HIFCR(dma) = flags;
-}
+  /* Get offset to interrupt flag location in stream field */
+  uint32_t flags = (interrupts << DMA_ISR_OFFSET(stream));
+  /* First four streams are in low register. Flag clear must be set then
+   * reset.
+   */
+  if (stream < 4) {
+    DMA_LIFCR(dma) = flags;
+  } else {
+    DMA_HIFCR(dma) = flags;
+  }
 }
 
 void SERIAL_DMA_ISR()
 {
   uint32_t next_head;
-	/* Clear transfer complete interrupt flag */
+  /* Clear transfer complete interrupt flag */
   dma_clear_interrupt_flags_private(SERIAL_DMA, SERIAL_DMA_STREAM, DMA_TCIF);
 
     switch (serial_rx_dma_data)
