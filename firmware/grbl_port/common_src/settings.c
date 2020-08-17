@@ -399,7 +399,7 @@ uint8_t read_global_settings(void) {
   }
   return(true);
 }
-#endif //ifdef NUCLEO_F401
+#endif //ifdef NUCLEO
 
 
 // A helper method to set settings from command line

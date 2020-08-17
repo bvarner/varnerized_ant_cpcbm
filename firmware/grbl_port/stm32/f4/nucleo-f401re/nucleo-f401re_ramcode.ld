@@ -26,8 +26,8 @@ MEMORY
 {
 	rom (rx) : ORIGIN = 0x08000000, LENGTH = 32K
 	rom2 (rx) : ORIGIN = 0x08010000, LENGTH = 448K
-	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 32K
-	ram_txt (rwx) : ORIGIN = 0x20008000, LENGTH = 64K
+	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 10K
+	ram_txt (rwx) : ORIGIN = 0x20002800, LENGTH = 86K
 }
 
 /* Enforce emmition of the vector table. */
@@ -41,12 +41,28 @@ SECTIONS
 {
 	.ramcode : {
 		    _ramcode = .;
+		. = ALIGN(4);
 	        *(.vectors)	/* Vector table */
 			*flash.o
 			*serial.o
+		. = ALIGN(4);
 			_eramcode = .;
 	}  >ram_txt AT >rom
 	_ramcode_loadaddr = LOADADDR(.ramcode);
+	
+	.ramcode2 : {
+		. = ALIGN(4);
+		    _ramcode2 = .;
+			*protocol.o
+			*report.o
+			*settings.o
+			*system.o
+		. = ALIGN(4);
+	}  >ram_txt AT >rom2
+	_ramcode2_loadaddr = LOADADDR(.ramcode2);
+
+	. = ALIGN(4);
+	_eramcode2 = .;
 	
 	.text : {
 		*(.text*)	/* Program code */
