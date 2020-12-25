@@ -69,7 +69,8 @@ const __flash settings_t defaults = {\
     .max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL),
     .max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL),
     .max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL),
-    .homing_debug = 0
+    .homing_debug = 0,
+    .XY_squaring_compensation = 0
 };
 
 #ifdef NUCLEO
@@ -404,7 +405,7 @@ uint8_t read_global_settings(void) {
 
 // A helper method to set settings from command line
 uint8_t settings_store_global_setting(uint8_t parameter, float value) {
-  if (value < 0.0) { return(STATUS_NEGATIVE_VALUE); } 
+  if (parameter!=90 && value < 0.0) { return(STATUS_NEGATIVE_VALUE); }
   if (parameter >= AXIS_SETTINGS_START_VAL) {
     // Store axis configuration. Axis numbering sequence set by AXIS_SETTING defines.
     // NOTE: Ensure the setting index corresponds to the report.c settings printout.
@@ -513,6 +514,7 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
       case 41: settings.spindle_pwm_max_time_on = int_value32; break;
       case 42: settings.spindle_pwm_min_time_on = int_value32; break;
       case 43: settings.spindle_pwm_enable_at_start = int_value32; break;
+      case 90: settings.XY_squaring_compensation = value; break;
       case 95:
     	  if (int_value)
     	  {

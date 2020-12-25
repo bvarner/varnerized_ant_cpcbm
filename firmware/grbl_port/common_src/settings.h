@@ -152,6 +152,8 @@ typedef struct {
   uint32_t spindle_pwm_max_time_on;
   uint32_t spindle_pwm_min_time_on;
   uint32_t spindle_pwm_enable_at_start;
+
+  float XY_squaring_compensation;
 } settings_t;
 extern settings_t settings;
 

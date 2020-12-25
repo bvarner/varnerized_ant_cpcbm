@@ -79,6 +79,7 @@ static void report_util_setting_string(uint8_t n) {
     case 41: printPgmString(PSTR("spindle pwm max time on")); break;
     case 42: printPgmString(PSTR("spindle pwm min time on")); break;
     case 43: printPgmString(PSTR("spindle pwm enable at start")); break;
+    case 90: printPgmString(PSTR("XY squaring compensation")); break;
     case 95: printPgmString(PSTR("hm debug")); break;
     default:
       n -= AXIS_SETTINGS_START_VAL;
@@ -278,6 +279,7 @@ void report_grbl_settings() {
     report_util_uint32_setting(42,0);
     report_util_uint32_setting(43,0);
   #endif
+  report_util_float_setting(90,settings.XY_squaring_compensation,N_DECIMAL_SETTINGVALUE);
   report_util_uint8_setting(95,settings.homing_debug);
   
   // Print axis settings

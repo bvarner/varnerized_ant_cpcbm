@@ -104,7 +104,7 @@ uint8_t gc_execute_line(char *line)
      a number, which can either be a 'G'/'M' command or sets/assigns a command value. Also, 
      perform initial error-checks for command word modal group violations, for any repeated
      words, and for negative values set for the value words F, N, P, T, and S. */
-     
+  float xyz_Y_compensation = 0;
   uint8_t word_bit; // Bit-value for assigning tracking variables
   uint8_t char_counter;
   char letter;
@@ -113,9 +113,9 @@ uint8_t gc_execute_line(char *line)
   uint16_t mantissa = 0;
   if (gc_parser_flags & GC_PARSER_JOG_MOTION) { char_counter = 3; } // Start parsing after `$J=`
   else { char_counter = 0; }
-
+  xyz_Y_compensation = 0;
   while (line[char_counter] != 0) { // Loop until no more g-code words in line.
-    
+
     // Import the next g-code word, expecting a letter followed by a value. Otherwise, error out.
     letter = line[char_counter];
     if((letter < 'A') || (letter > 'Z')) { FAIL(STATUS_EXPECTED_COMMAND_LETTER); } // [Expected word letter]
@@ -316,8 +316,18 @@ uint8_t gc_execute_line(char *line)
 					  if (value > MAX_TOOL_NUMBER) { FAIL(STATUS_GCODE_MAX_VALUE_EXCEEDED); }
             gc_block.values.t = int_value;
 						break;
-          case 'X': word_bit = WORD_X; gc_block.values.xyz[X_AXIS] = value; axis_words |= (1<<X_AXIS); break;
-          case 'Y': word_bit = WORD_Y; gc_block.values.xyz[Y_AXIS] = value; axis_words |= (1<<Y_AXIS); break;
+          case 'X': //word_bit = WORD_X; gc_block.values.xyz[X_AXIS] = value; axis_words |= (1<<X_AXIS); break;
+        	  word_bit = WORD_X;
+        	  gc_block.values.xyz[X_AXIS] = value;
+        	  axis_words |= (1<<X_AXIS);
+        	  if((gc_block.values.xyz[X_AXIS] * settings.XY_squaring_compensation) != 0)
+        	  {
+        		  xyz_Y_compensation = gc_block.values.xyz[X_AXIS] * settings.XY_squaring_compensation;// (-0.007);
+        		  gc_block.values.xyz[Y_AXIS] = xyz_Y_compensation; //init
+            	  axis_words |= (1<<Y_AXIS);
+        	  }
+        	  break;
+          case 'Y': word_bit = WORD_Y; gc_block.values.xyz[Y_AXIS] = value + xyz_Y_compensation; axis_words |= (1<<Y_AXIS); break;
           case 'Z': word_bit = WORD_Z; gc_block.values.xyz[Z_AXIS] = value; axis_words |= (1<<Z_AXIS); break;
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
         } 
