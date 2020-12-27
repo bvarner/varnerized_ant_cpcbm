@@ -24,13 +24,15 @@
 #include "limits.h"
 //#endif
 
-void test_initialization()
+void test_heartbeat_initialization()
 {
   /* Enable GPIOA clock. */
   rcc_periph_clock_enable(RCC_GPIOA);
 
   /* Set GPIO5 (in GPIO port A) to 'output push-pull'. */
   gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO5);
+
+  SET_HEARTBEAT_DDR;
 }
 
 static void test_user_button_initialization(void)

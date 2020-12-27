@@ -23,7 +23,7 @@
 
 #include <grbl.h>
 
-void test_initialization(void);
+void test_heartbeat_initialization(void);
 void test_sw_debounce(void);
 void test_interrupt_signalling(uint32_t num_signals);
 void test_led_toggle(void);
