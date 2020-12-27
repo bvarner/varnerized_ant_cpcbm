@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-__author__ = 'Angelo Di Chello'
+__author__ = 'The Ant Team'
 __copyright__ = "Copyright 2018"
 __license__ = "GPL3"
 __version__ = "0.2"

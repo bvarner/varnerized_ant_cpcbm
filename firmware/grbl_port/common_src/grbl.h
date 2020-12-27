@@ -2,7 +2,7 @@
   grbl.h - main Grbl include file
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017-2019 Angelo Di Chello
+  Copyright (c) 2017-2019 The Ant Team
   Copyright (c) 2016 Sungeun K. Jeon for Gnea Research LLC
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify

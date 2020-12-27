@@ -2,7 +2,7 @@
   system.h - Header for system level commands and real-time processes
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2017-2020 The Ant Team
   Copyright (c) 2014-2016 Sungeun K. Jeon for Gnea Research LLC  
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify

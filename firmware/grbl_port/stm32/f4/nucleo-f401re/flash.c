@@ -2,7 +2,7 @@
   flash.c - flash access functions
   Part of grbl_port_opencm3 project.
 
-  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2017-2020 The Ant Team
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by

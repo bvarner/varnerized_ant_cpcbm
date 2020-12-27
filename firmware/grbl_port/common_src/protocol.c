@@ -2,7 +2,7 @@
   protocol.c - controls Grbl execution protocol and procedures
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2017-2020 The Ant Team
   Copyright (c) 2011-2016 Sungeun K. Jeon for Gnea Research LLC
   Copyright (c) 2009-2011 Simen Svale Skogsrud
 

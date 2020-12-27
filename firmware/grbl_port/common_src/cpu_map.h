@@ -2,7 +2,7 @@
   cpu_map.h - CPU and pin mapping configuration file
   Part of grbl_port_opencm3 project, derived from the Grbl work.
 
-  Copyright (c) 2017-2020 Angelo Di Chello
+  Copyright (c) 2017-2020 The Ant Team
   Copyright (c) 2012-2016 Sungeun K. Jeon
 
   Grbl_port_opencm3 is free software: you can redistribute it and/or modify
