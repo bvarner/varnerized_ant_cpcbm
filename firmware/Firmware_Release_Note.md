@@ -1,3 +1,12 @@
+# Version 1.1.66 - 28-Dec-2020
+PWM of the spindle has now a gradual ramp-up and a ramp-down only for CNC machining mode, for laser mode the behaviour is unchanged.
+The effect is a gradual increase and decrease of spindle speed, avoiding abrupt changes that could lead to electrical issues in some cases.
+The ramps can be regulated with the number of points stored in $44. The minimum is zero, that behaves like there is no ramp.
+The maximum points is 100. The delay between points is fixed to 100 ms. The default number of points is 20.
+
+# Version 1.1.65 - 17-Aug-2020
+Improved robustness of serial communication moving part of the code in a new ramcode section.
+
 # Version 1.1.64 - 13-Aug-2020
 Improved robustness of serial communication.
 

@@ -43,6 +43,8 @@
 #define BIT_INVERT_LIMIT_PINS  6
 #define BIT_INVERT_PROBE_PIN   7
 
+#define BIT_PWM_EN_AT_START    0
+#define BIT_PWM_RAMPING        0
 #define BIT_HOMING_DEBUG       0
 
 #define BITFLAG_REPORT_INCHES      bit(BIT_REPORT_INCHES)
@@ -54,11 +56,18 @@
 #define BITFLAG_INVERT_LIMIT_PINS  bit(BIT_INVERT_LIMIT_PINS)
 #define BITFLAG_INVERT_PROBE_PIN   bit(BIT_INVERT_PROBE_PIN)
 
+#define BITFLAG_PWM_EN_AT_START    bit(BIT_PWM_EN_AT_START)
+#define BITFLAG_PWM_RAMPING        bit(BIT_PWM_RAMPING)
 #define BITFLAG_HOMING_DEBUG       bit(BIT_HOMING_DEBUG)
 
 // Define status reporting boolean enable bit flags in settings.status_report_mask
 #define BITFLAG_RT_STATUS_POSITION_TYPE     bit(0)
 #define BITFLAG_RT_STATUS_BUFFER_STATE      bit(1)
+
+#define MAX_RAMPING_DIVISIONS     100
+#define DEFAULT_PWM_RAMPING_DIVS  20
+#define DEFAULT_PWM_RAMPING_DELAY 100
+#define DEFAULT_HOMING_DEBUG_EN   0
 
 // Define settings restore bitflags.
 #define SETTINGS_RESTORE_DEFAULTS bit(0)
@@ -152,6 +161,7 @@ typedef struct {
   uint32_t spindle_pwm_max_time_on;
   uint32_t spindle_pwm_min_time_on;
   uint32_t spindle_pwm_enable_at_start;
+  uint32_t spindle_pwm_ramping_divisions;
 } settings_t;
 extern settings_t settings;
 

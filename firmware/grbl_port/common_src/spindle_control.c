@@ -22,9 +22,98 @@
 
 #include "grbl.h"
 
+/* Implementation of Bresenham's Line Algorithm, negative gradient.
+ * See the plotLine function description.
+ */
+static void plotLineLow(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint32_t * y_result)
+{
+	uint32_t x;
+    int32_t dx = (int32_t)(x1 - x0);
+    int32_t dy = (int32_t)(y1 - y0);
+
+    int32_t yi = 1;
+    if (dy < 0)
+    {
+        yi = -1;
+        dy = -dy;
+    }
+    int32_t D = (2 * dy) - dx;
+    int32_t y = y0;
+
+    for(x = x0; x < x1; x++)
+    {
+        y_result[x] = y;
+        if(D > 0)
+        {
+            y = y + yi;
+            D = D + (2 * (dy - dx));
+        }
+        else
+        {
+            D = D + 2*dy;
+        }
+    }
+}
+
+/* Implementation of Bresenham's Line Algorithm, positive gradient.
+ * See the plotLine function description.
+ */
+static void plotLineHigh(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint32_t * y_result)
+{
+	uint32_t y;
+	int32_t dx = (int32_t)(x1 - x0);
+	int32_t dy = (int32_t)(y1 - y0);
+
+	int32_t xi = 1;
+	int32_t x = x0;
+    if(dx < 0)
+    {
+        xi = -1;
+        dx = -dx;
+        x -= 1;
+    }
+    int32_t D = (2 * dx) - dy;
+
+    for(y = y0; y < y1; y++)
+    {
+        if(D > 0)
+        {
+            y_result[x] = y;
+            x = x + xi;
+            D = D + (2 * (dx - dy));
+        }
+        else
+        {
+            D = D + 2*dx;
+        }
+    }
+}
+
+/* Implementation of Bresenham's Line Algorithm
+ * This function is used for pwm spindle ramping, to calculate the points of a line, where
+ * each y point is a pwm that is applied in a increasing or decreasing linear progression.
+ * For further information see: https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+ */
+static void plotLine(uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint32_t * y_result)
+{
+	if(abs(y1 - y0) < abs(x1 - x0))
+	{
+        if(x0 > x1)
+            plotLineLow(x1, y1, x0, y0, y_result);
+        else
+            plotLineLow(x0, y0, x1, y1, y_result);
+	}
+    else
+    {
+        if(y0 > y1)
+            plotLineHigh(x1, y1, x0, y0, y_result);
+        else
+            plotLineHigh(x0, y0, x1, y1, y_result);
+    }
+}
 
 #ifdef VARIABLE_SPINDLE
-  static float pwm_gradient; // Precalulated value to speed up rpm to PWM conversions.
+  static float pwm_gradient; // Pre-calulated value to speed up rpm to PWM conversions.
 #endif
 
 
@@ -39,7 +128,7 @@ void spindle_init()
 
   #ifdef VARIABLE_SPINDLE
 
-  // Configure variable spindle PWM and enable pin, if requried. On the Uno, PWM and enable are
+  // Configure variable spindle PWM and enable pin, if required. On the Uno, PWM and enable are
   // combined unless configured otherwise.
     SET_SPINDLE_PWM_DDR; // Configure as PWM output pin.
     #ifdef USE_SPINDLE_DIR_AS_ENABLE_PIN
@@ -77,6 +166,7 @@ void spindle_init()
 	timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_PWM_TYPE);
 	timer_enable_oc_preload(SPINDLE_TIMER, SPINDLE_TIMER_CHAN);           // Sets OCxPE in TIMx_CCMRx
 	timer_set_oc_polarity_high(SPINDLE_TIMER, SPINDLE_TIMER_CHAN);        // set desired polarity in TIMx_CCER
+	timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, 0);
 	timer_enable_oc_output(SPINDLE_TIMER, SPINDLE_TIMER_CHAN);
     timer_set_prescaler(SPINDLE_TIMER, prescaler);// set to get 1 us granularity
 
@@ -84,7 +174,7 @@ void spindle_init()
 	gpio_mode_setup(SPINDLE_GPIO_GROUP, GPIO_MODE_AF, GPIO_PUPD_NONE, SPINDLE_GPIO);
 	gpio_set_af(SPINDLE_GPIO_GROUP, SPINDLE_GPIO_AF, SPINDLE_GPIO);
     
-    spindle_stop();
+    spindle_set_state(SPINDLE_DISABLE,0.0);
 }
 
 
@@ -125,7 +215,7 @@ uint8_t spindle_get_state()
 // Called by spindle_init(), spindle_set_speed(), spindle_set_state(), and mc_reset().
 void spindle_stop()
 {
-  // On the Nucleo F401, spindle enable and PWM are shared. Other CPUs have seperate enable pin.
+  // On the Nucleo, spindle enable and PWM are shared. Other CPUs have separate enable pin.
   #ifdef VARIABLE_SPINDLE
     /* Disable PWM. Output voltage is zero. */
     timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_OFF_TYPE);
@@ -158,9 +248,17 @@ void spindle_stop()
 {
   uint16_t current_pwm;
   uint32_t spindle_pwm_range;
+  uint32_t pwm_prog_y[MAX_RAMPING_DIVISIONS];
+  uint32_t ramping_divs = settings.spindle_pwm_ramping_divisions;
+
+  /* Ramps for laser mode is managed elsewhere. */
+  if(bit_istrue(settings.flags,BITFLAG_LASER_MODE))
+  {
+	  ramping_divs = 0;
+  }
 
   if (sys.abort) { return; } // Block during abort.
-  if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
+  if (state == SPINDLE_DISABLE && bit_istrue(settings.flags,BITFLAG_LASER_MODE)) { // Halt or set spindle direction and rpm.
 #ifdef VARIABLE_SPINDLE
     sys.spindle_speed = 0.0;
 #endif
@@ -176,56 +274,63 @@ void spindle_stop()
     else
     {
         SET_SPINDLE_DIRECTION_BIT;
-      }
+    }
 #endif
 
 #ifdef VARIABLE_SPINDLE
-    timer_disable_counter(SPINDLE_TIMER);
-    timer_set_counter(SPINDLE_TIMER,0);
 
     /* PWM settings done in the init, shall not need to be repeated. */
     timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_PWM_TYPE);
-    timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, 0xFFFF);// set the top 16bit value
     timer_set_period(SPINDLE_TIMER, settings.spindle_pwm_period);
         
 
     spindle_pwm_range = (settings.spindle_pwm_max_time_on-settings.spindle_pwm_min_time_on);
 
-    if (rpm < 0.0 || spindle_pwm_range <= 0.0) { spindle_stop(); } // RPM should never be negative, but check anyway.
-    else
-    {
-        if ( rpm < SPINDLE_MIN_RPM ) { rpm = 0; } 
-      else if ( rpm > SPINDLE_MAX_RPM ) { rpm = SPINDLE_MAX_RPM; }
+    if (rpm < 0.0 || spindle_pwm_range <= 0.0 || state == SPINDLE_DISABLE) { rpm = 0.0;  } // RPM should never be negative, but check anyway.
+    if ( rpm < SPINDLE_MIN_RPM ) { rpm = 0; }
+    else if ( rpm > SPINDLE_MAX_RPM ) { rpm = SPINDLE_MAX_RPM; }
 
-      //current_pwm = floor( rpm*(spindle_pwm_range/(SPINDLE_MAX_RPM - SPINDLE_MIN_RPM)) + settings.spindle_pwm_min_time_on + 0.5);
-        current_pwm = spindle_compute_pwm_value(rpm);
+    current_pwm = spindle_compute_pwm_value(rpm);
+    timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_PWM_TYPE);
+    /* Counter enable. */
+    timer_enable_counter(SPINDLE_TIMER);
 
-        timer_set_oc_mode(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, SPINDLE_TIMER_PWM_TYPE);
-        timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, current_pwm);// Set PWM pin output
-        timer_enable_oc_output(SPINDLE_TIMER, SPINDLE_TIMER_CHAN);
+    plotLine(0, TIM_CCR1(SPINDLE_TIMER), ramping_divs, current_pwm, pwm_prog_y);
 
-        /* Counter enable. */
-        timer_enable_counter(SPINDLE_TIMER); 
-    
-        // if spindle enable and PWM are shared, unless otherwise specified.
-        #if defined(USE_SPINDLE_DIR_AS_ENABLE_PIN) 
-          #ifdef INVERT_SPINDLE_ENABLE_PIN
-            UNSET_SPINDLE_ENABLE;  // Set pin to low
-          #else
-            SET_SPINDLE_ENABLE;  // Set pin to high
-          #endif
-        #endif
-      }
-      
-    #else
-      // NOTE: Without variable spindle, the enable bit should just turn on or off, regardless
-      // if the spindle speed value is zero, as its ignored anyhow.      
-      #ifdef INVERT_SPINDLE_ENABLE_PIN
-        UNSET_SPINDLE_ENABLE;  // Set pin to low
-      #else
-        SET_SPINDLE_ENABLE;  // Set pin to high
-      #endif
-    #endif
+	for(uint32_t i = 0; i < ramping_divs; i++)
+	{
+		timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, pwm_prog_y[i]);// Set PWM pin output
+		delay_ms(DEFAULT_PWM_RAMPING_DELAY);
+	}
+
+    timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, current_pwm);// Set PWM pin output
+
+	// if spindle enable and PWM are shared, unless otherwise specified.
+	#if defined(USE_SPINDLE_DIR_AS_ENABLE_PIN)
+	  #ifdef INVERT_SPINDLE_ENABLE_PIN
+		UNSET_SPINDLE_ENABLE;  // Set pin to low
+	  #else
+		SET_SPINDLE_ENABLE;  // Set pin to high
+	  #endif
+	#endif
+
+#else
+  // NOTE: Without variable spindle, the enable bit should just turn on or off, regardless
+  // if the spindle speed value is zero, as its ignored anyhow.
+  #ifdef INVERT_SPINDLE_ENABLE_PIN
+	UNSET_SPINDLE_ENABLE;  // Set pin to low
+  #else
+	SET_SPINDLE_ENABLE;  // Set pin to high
+  #endif
+#endif
+
+	if (state == SPINDLE_DISABLE)
+	{ // Halt or set spindle direction and rpm.
+	#ifdef VARIABLE_SPINDLE
+	    sys.spindle_speed = 0.0;
+	#endif
+	    spindle_stop();
+	}
 
   }
   
@@ -359,7 +464,7 @@ void spindle_init()
   #ifndef USE_SPINDLE_DIR_AS_ENABLE_PIN
     SPINDLE_DIRECTION_DDR |= (1<<SPINDLE_DIRECTION_BIT); // Configure as output pin.
   #endif
-  spindle_stop();
+  spindle_set_state(SPINDLE_DISABLE,0.0);
 }
 
 
@@ -488,15 +593,20 @@ void spindle_stop()
   #endif  
 }
 
-
-void spindle_set_state(uint8_t state, float rpm)
+void spindle_set_state(uint8_t state, float rpm_in)
 {
+  float rpm = rpm_in;
+  uint8_t previous_pwm = OCR_REGISTER;
+
+  uint8_t dx = 10;
+  int8_t dy;
+  int8_t D;
+
   // Halt or set spindle direction and rpm. 
   if (state == SPINDLE_DISABLE) {
+	  rpm = 0;
+  }
 
-    spindle_stop();
-
-  } else {
 
     #ifndef USE_SPINDLE_DIR_AS_ENABLE_PIN
       if (state == SPINDLE_ENABLE_CW) {
@@ -519,8 +629,8 @@ void spindle_set_state(uint8_t state, float rpm)
         uint8_t current_pwm;
       #endif
 
-      if (rpm <= 0.0) { spindle_stop(); } // RPM should never be negative, but check anyway.
-      else {
+      if (rpm <= 0.0) { rpm = 0; } // RPM should never be negative, but check anyway.
+
         #define SPINDLE_RPM_RANGE (SPINDLE_MAX_RPM-SPINDLE_MIN_RPM)
         if ( rpm < SPINDLE_MIN_RPM ) { rpm = 0; } 
         else { 
@@ -532,7 +642,9 @@ void spindle_set_state(uint8_t state, float rpm)
           if (current_pwm < MINIMUM_SPINDLE_PWM) { current_pwm = MINIMUM_SPINDLE_PWM; }
         #endif
         OCR_REGISTER = current_pwm; // Set PWM pin output
-    
+
+        plotLine(0, previous_pwm, 10, current_pwm);
+
         // On the Uno, spindle enable and PWM are shared, unless otherwise specified.
         #if defined(CPU_MAP_ATMEGA2560) || defined(USE_SPINDLE_DIR_AS_ENABLE_PIN) 
           #ifdef INVERT_SPINDLE_ENABLE_PIN
@@ -541,7 +653,6 @@ void spindle_set_state(uint8_t state, float rpm)
             SPINDLE_ENABLE_PORT |= (1<<SPINDLE_ENABLE_BIT);
           #endif
         #endif
-      }
       
     #endif
     #if (defined(USE_SPINDLE_DIR_AS_ENABLE_PIN) && \
@@ -555,7 +666,9 @@ void spindle_set_state(uint8_t state, float rpm)
       #endif
     #endif
 
-  }
+	if (state == SPINDLE_DISABLE) {
+		spindle_stop();
+	}
 }
 
 #endif //NUCLEO_F401

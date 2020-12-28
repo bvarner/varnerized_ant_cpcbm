@@ -69,7 +69,8 @@ const __flash settings_t defaults = {\
     .max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL),
     .max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL),
     .max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL),
-    .homing_debug = 0
+    .homing_debug = DEFAULT_HOMING_DEBUG_EN,
+	.spindle_pwm_ramping_divisions = DEFAULT_PWM_RAMPING_DIVS
 };
 
 #ifdef NUCLEO
@@ -512,7 +513,26 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
       case 40: settings.spindle_pwm_period = int_value32; break;
       case 41: settings.spindle_pwm_max_time_on = int_value32; break;
       case 42: settings.spindle_pwm_min_time_on = int_value32; break;
-      case 43: settings.spindle_pwm_enable_at_start = int_value32; break;
+      case 43:
+		  if (int_value)
+		  {
+			  settings.spindle_pwm_enable_at_start |= BITFLAG_PWM_EN_AT_START;
+		  }
+		  else
+		  {
+			  settings.spindle_pwm_enable_at_start &= ~BITFLAG_PWM_EN_AT_START;
+		  }
+		  break;
+      case 44:
+		  if (int_value32 <= MAX_RAMPING_DIVISIONS)
+		  {
+			  settings.spindle_pwm_ramping_divisions = int_value32;
+		  }
+		  else
+		  {
+			  settings.spindle_pwm_ramping_divisions = DEFAULT_PWM_RAMPING_DIVS;
+		  }
+		  break;
       case 95:
     	  if (int_value)
     	  {

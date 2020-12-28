@@ -79,6 +79,7 @@ static void report_util_setting_string(uint8_t n) {
     case 41: printPgmString(PSTR("spindle pwm max time on")); break;
     case 42: printPgmString(PSTR("spindle pwm min time on")); break;
     case 43: printPgmString(PSTR("spindle pwm enable at start")); break;
+    case 44: printPgmString(PSTR("spindle pwm ramping points, max 100, min 0->disable ramping")); break;
     case 95: printPgmString(PSTR("hm debug")); break;
     default:
       n -= AXIS_SETTINGS_START_VAL;
@@ -271,12 +272,14 @@ void report_grbl_settings() {
     report_util_uint32_setting(41,settings.spindle_pwm_max_time_on);
     report_util_uint32_setting(42,settings.spindle_pwm_min_time_on);
     report_util_uint32_setting(43,settings.spindle_pwm_enable_at_start);
+    report_util_uint32_setting(44,settings.spindle_pwm_ramping_divisions);
   #else
     report_util_uint8_setting(32,0);
     report_util_uint32_setting(40,0);
     report_util_uint32_setting(41,0);
     report_util_uint32_setting(42,0);
     report_util_uint32_setting(43,0);
+    report_util_uint32_setting(44,0);
   #endif
   report_util_uint8_setting(95,settings.homing_debug);
   
