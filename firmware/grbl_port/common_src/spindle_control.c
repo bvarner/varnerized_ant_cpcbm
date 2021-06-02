@@ -295,13 +295,16 @@ void spindle_stop()
     /* Counter enable. */
     timer_enable_counter(SPINDLE_TIMER);
 
-    plotLine(0, TIM_CCR1(SPINDLE_TIMER), ramping_divs, current_pwm, pwm_prog_y);
+    if(TIM_CCR1(SPINDLE_TIMER) != current_pwm)
+    {
+		plotLine(0, TIM_CCR1(SPINDLE_TIMER), ramping_divs, current_pwm, pwm_prog_y);
 
-	for(uint32_t i = 0; i < ramping_divs; i++)
-	{
-		timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, pwm_prog_y[i]);// Set PWM pin output
-		delay_ms(DEFAULT_PWM_RAMPING_DELAY);
-	}
+		for(uint32_t i = 0; i < ramping_divs; i++)
+		{
+			timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, pwm_prog_y[i]);// Set PWM pin output
+			delay_ms(DEFAULT_PWM_RAMPING_DELAY);
+		}
+    }
 
     timer_set_oc_value(SPINDLE_TIMER, SPINDLE_TIMER_CHAN, current_pwm);// Set PWM pin output
 
