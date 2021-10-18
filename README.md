@@ -5,17 +5,21 @@ As a hobbiest, my primary concerns are not asthetics as much as cost and compone
 
 In making my decisions about what to 'Varnerize' vs. purchase and stick to the plans I'll be weighing things based upon:
 
-* What's already in my component drawers. (Do I have an analogous part?)
-* What I can reasonably 3d-print and combine with something else already in my component drawers. (Is this something I could print an analog for?)
-* Functional Accuracy. (Will the modification affect the function of the device?)
-* Build cost. (Is the reduction in cost worth the effort to customize?)
+* What's already in my component drawers or easily obtainable given current supply chain and production limitations. Prioritize functional available parts over form.
+* What I can reasonably 3d-print and combine with something else already in my component drawers. Prioritize self fabrication over purchasing produced parts.
+* Functional Accuracy. Modifications will prioritize accuracy over workable size. I expect some modifications to reduce the work area.
+* Build cost. If I can cut the cost to build by 1/3rd but still retain 80% of the work area and feature set -- then that's a very Varner thing to do.
 
 Specific changes I'll be investigating:
 
-* NEMA17 steppers for the COREXY mechanics and any additional offsets or supports necessary for their use.
-* Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board.
+* NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8.
+* Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board + GRBL board.
 * 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
-* 3d printable pulleys that make use of bearings already in my component drawers, or a package of bearings that would be less expensive than the numerous GT2 pulleys in strange configurations and expensive part-counts.
+* 3d printable pulleys based around 683ZZ bearings. As of 10/2021 I was able to obtain a 20 pack of these bearings for $10. Sourcing the appropirate number of 16-tooth pulleys would have cost more than the 20 pack of bearings.
+
+Things I did not 'skimp' on:
+* MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
+* Linear rails. Experience from building 3d printers told me this was worth it.
 
 ## Original ANT Project resources
 * Bitbucket: [CPCBM](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/)
