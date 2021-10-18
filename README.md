@@ -15,7 +15,7 @@ Specific changes I'll be investigating:
 * NEMA17 steppers for the COREXY mechanics and any additional offsets or supports necessary for their use.
 * Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board.
 * 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
-* 3d printable pullys that make use of bearings already in my component drawers.
+* 3d printable pulleys that make use of bearings already in my component drawers, or a package of bearings that would be less expensive than the numerous GT2 pulleys in strange configurations and expensive part-counts.
 
 ## Original ANT Project resources
 * Bitbucket: [CPCBM](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/)
