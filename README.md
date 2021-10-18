@@ -1,22 +1,31 @@
-## NOTE: All the files and informations in the mechanics folder of this repository are licensed under CC-BY-NC-SA license.
+# Varnerized ANT Compact PCB Maker
 
-## Please, refer to the following link to know the details about this license.
+Since first coming across the ANT project, I've wanted to make one. However there are some esoteric hardware choices in the base project that seem to prioritize form over function and cost.
+As a hobbiest, my primary concerns are not asthetics as much as cost and component availability.
 
-[![Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+In making my decisions about what to 'Varnerize' vs. purchase and stick to the plans I'll be weighing things based upon:
 
+* What's already in my component drawers. (Do I have an analogous part?)
+* What I can reasonably 3d-print and combine with something else already in my component drawers. (Is this something I could print an analog for?)
+* Functional Accuracy. (Will the modification affect the function of the device?)
+* Build cost. (Is the reduction in cost worth the effort to customize?)
 
-## News[31-12-2018]: The complete release of the mechanical drawings of the machine are OUT!!! Informative videos will follow as soon as possible.
+Specific changes I'll be investigating:
 
-## Youtube Channel: [The Ant PCB Maker](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
+* NEMA17 steppers for the COREXY mechanics and any additional offsets or supports necessary for their use.
+* Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board.
+* 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
+* 3d printable pullys that make use of bearings already in my component drawers.
 
-## Instagram : [The Ant Team](https://www.instagram.com/the_ant_team/)
+## Original ANT Project resources
+* Bitbucket: [CPCBM](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/)
+* Youtube Channel: [The Ant PCB Maker](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
+* Instagram : [The Ant Team](https://www.instagram.com/the_ant_team/)
+* Reddit: [r/TheANT](https://www.reddit.com/r/TheANT/)
 
-## Reddit: [r/TheANT](https://www.reddit.com/r/TheANT/)
-
-## Contact us at: the.ant.pcb@gmail.com or compact.pcb.maker.team@gmail.com
+### Contact us at: the.ant.pcb@gmail.com or compact.pcb.maker.team@gmail.com
 
 [![alternativetext](https://bitbucket.org/compactpcbmaker/cpcbm/raw/6ffa7937e43088e09a562490447c1323f4919ad3/resources/the_ant_logo/the_ant_logo_small.png =50x20)](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
-
 
 The Ant is a project to develop a CNC machine able to realize single and double-layered printed circuit boards.
 
