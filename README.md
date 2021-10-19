@@ -13,6 +13,7 @@ In making my decisions about what to 'Varnerize' vs. purchase and stick to the p
 Specific changes I'll be investigating:
 
 * NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8.
+* Bridge segmenting and joinery.
 * Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board + GRBL board.
 * 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
 * 3d printable pulleys based around 683ZZ bearings. As of 10/2021 I was able to obtain a 20 pack of these bearings for $10. Sourcing the appropirate number of 16-tooth pulleys would have cost more than the 20 pack of bearings.
@@ -20,6 +21,13 @@ Specific changes I'll be investigating:
 Things I did not 'skimp' on:
 * MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
 * Linear rails. Experience from building 3d printers told me this was worth it.
+
+## Varnerizations
+1. 8MM Linear Rods & LM8UU linear bearings. Sacrificed 4mm of Y axis travel. 2.5 to the front of the bridge (spacing for LM8UU's for the head) and 1.5 to the back of the bridge. This also added 1mm to the height to the left-right bridge and center bridge.
+2. Bridge Core is now One Piece.
+3. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
+4. Use standard M3x30 screws + captive nuts to assemble the bridge and belt holder.
+
 
 ## Original ANT Project resources
 * Bitbucket: [CPCBM](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/)
