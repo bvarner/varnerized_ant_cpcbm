@@ -27,6 +27,7 @@ Things I did not 'skimp' on:
 2. Bridge Core is now One Piece.
 3. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
 4. Use standard M3x30 screws + captive nuts to assemble the bridge and belt holder.
+5. NEMA17 Stepper Mounts that are quite stout and robust. Based on a design I found on Thingiverse, but tweaked to be a consistent thickness with the other parts on the machine and have extra support to avoid needing extra brackets under the motors.
 
 
 ## Original ANT Project resources
