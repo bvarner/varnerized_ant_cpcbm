@@ -12,7 +12,7 @@ In making my decisions about what to 'Varnerize' vs. purchase and stick to the p
 
 Specific changes I'll be investigating:
 
-* NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8.
+* NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8. I've seen [this top-mounted NEMA 11 modification](https://jplattel.nl/post/2021-03-07-improving-the-ant-head/) which has supplied a surprising amount of 'idea fuel'.
 * Bridge segmenting and joinery.
 * Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board + GRBL board.
 * 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
@@ -23,11 +23,17 @@ Things I did not 'skimp' on:
 * Linear rails. Experience from building 3d printers told me this was worth it.
 
 ## Varnerizations
-1. 8MM Linear Rods & LM8UU linear bearings. Sacrificed 4mm of Y axis travel. 2.5 to the front of the bridge (spacing for LM8UU's for the head) and 1.5 to the back of the bridge. This also added 1mm to the height to the left-right bridge and center bridge.
+1. 8MM Linear Rods & LM8UU linear bearings. 
+    * Sacrificed 4mm of Y axis travel. 2.5 to the front of the bridge (spacing for LM8UU's for the head) and 1.5 to the back of the bridge.
+    * Added 1mm to the height to the left-right bridge and center bridge, added 1mm separation betweeen centers of the x-axis rails.
 2. Bridge Core is now One Piece.
+    * Captive M3 Hex Nuts allow the use of (6) M3x30 screws instead of the original BOM spec for (3) M3 threaded rods cut to length.
+    * Linear bearing hole size is _barely_ oversized.
+    * Expansion / Compression cut for linear bearings. M3 screws holding together the bridge act as compression points to hold the bearings snug.
 3. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
-4. Use standard M3x30 screws + captive nuts to assemble the bridge and belt holder.
-5. NEMA17 Stepper Mounts that are quite stout and robust. Based on a design I found on Thingiverse, but tweaked to be a consistent thickness with the other parts on the machine and have extra support to avoid needing extra brackets under the motors.
+5. NEMA17 Stepper Motors
+    * COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519)
+    * Reinforced COREXY mounts, added extra connection point to vertical support. Eliminates the need for the secondary retainer.
 
 
 ## Original ANT Project resources
