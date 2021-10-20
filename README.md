@@ -17,6 +17,7 @@ Specific changes I'll be investigating:
 * Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board + GRBL board.
 * 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
 * 3d printable pulleys based around 683ZZ bearings. As of 10/2021 I was able to obtain a 20 pack of these bearings for $10. Sourcing the appropirate number of 16-tooth pulleys would have cost more than the 20 pack of bearings.
+* Overhangs in some parts (which seem to be dimensionally important) should have 'snap-off' supports.
 
 Things I did not 'skimp' on:
 * MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
