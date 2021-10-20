@@ -24,8 +24,9 @@ teeth = 16;			// Number of teeth, standard Mendel T5 belt = 8, gives Outside Dia
 profile = 12;		// 1=MXL 2=40DP 3=XL 4=H 5=T2.5 6=T5 7=T10 8=AT5 9=HTD_3mm 10=HTD_5mm 11=HTD_8mm 12=GT2_2mm 13=GT2_3mm 14=GT2_5mm
 smooth = 0;
 
-motor_shaft = 7;	// NEMA17 motor shaft exact diameter = 5
-m3_dia = 3.2;		// 3mm hole diameter
+motor_shaft = 7.1;	// NEMA17 motor shaft exact diameter = 5
+bearing_ht = 3.5;
+m3_dia = 5;		// 3mm hole diameter
 m3_nut_hex = 1;		// 1 for hex, 0 for square nut
 m3_nut_flats = 5.7;	// normal M3 hex nut exact width = 5.5
 m3_nut_depth = 2.7;	// normal M3 hex nut exact depth = 2.4, nyloc = 4
@@ -93,12 +94,15 @@ if ( profile == 12 ) { pulley ( "GT2 2mm" , GT2_2mm_pulley_dia , 0.764 , 1.494 )
 if ( profile == 13 ) { pulley ( "GT2 3mm" , GT2_3mm_pulley_dia , 1.169 , 2.31 ); }
 if ( profile == 14 ) { pulley ( "GT2 5mm" , GT2_5mm_pulley_dia , 1.969 , 3.952 ); }
 
-translate([0, 0, 3.2]) {
+layer_ht = 0.2;
+total_ht = retainer_ht + idler_ht + pulley_t_ht;
+center_h = total_ht - bearing_ht * 2 - 2 * layer_ht;
+translate([0, 0, bearing_ht + layer_ht]) {
     difference() {
-        cylinder(d = motor_shaft, h = 2.6, $fn = 90);
-        cylinder(d = 3, h = 2.6, $fn = 90);
-        cube([motor_shaft, 3, 0.4], center = true);        
-        rotate([0, 0, 90]) cube([3, 3, 0.8], center = true);        
+        cylinder(d = motor_shaft, h = center_h, $fn = 90);
+        cylinder(d = m3_dia, h = center_h, $fn = 90);
+        cube([motor_shaft, m3_dia, layer_ht * 2], center = true);        
+        rotate([0, 0, 90]) cube([m3_dia, m3_dia, layer_ht * 4], center = true);        
     }
 }
 // Functions
