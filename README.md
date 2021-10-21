@@ -29,7 +29,7 @@ Things I did not 'skimp' on:
     * Added 1mm to the height to the left-right bridge and center bridge, added 1mm separation betweeen centers of the x-axis rails.
 2. Bridge Core is now One Piece.
     * Captive M3 Hex Nuts allow the use of (6) M3x30 screws instead of the original BOM spec for (3) M3 threaded rods cut to length.
-    * Linear bearing hole size is _barely_ oversized.
+    * Linear bearing holes are _barely_ oversized, allowing for the M3x30 screws to act as compression mechanisms to hold the bearings.
     * Expansion / Compression cut for linear bearings. M3 screws holding together the bridge act as compression points to hold the bearings snug.
 3. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
 5. NEMA17 Stepper Motors
