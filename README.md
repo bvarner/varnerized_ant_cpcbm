@@ -18,6 +18,8 @@ Specific changes I'll be investigating:
 * 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
 * 3d printable pulleys based around 683ZZ bearings. As of 10/2021 I was able to obtain a 20 pack of these bearings for $10. Sourcing the appropirate number of 16-tooth pulleys would have cost more than the 20 pack of bearings.
 * Overhangs in some parts (which seem to be dimensionally important) should have 'snap-off' supports.
+* Use of a TR8x8 leadscrew, along with a GT2 closed loop belt and pulley system for Z-Axis motion. I have a few of these belts laying around from converting my prusa-style printer to a [Skelestruder](https://jltxplore.dozuki.com/c/Skelestruder_for_Prusa_MK3) extruder.
+
 
 Things I did not 'skimp' on:
 * MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
@@ -25,16 +27,23 @@ Things I did not 'skimp' on:
 
 ## Varnerizations
 1. 8MM Linear Rods & LM8UU linear bearings. 
-    * Sacrificed 4mm of Y axis travel. 2.5 to the front of the bridge (spacing for LM8UU's for the head) and 1.5 to the back of the bridge.
+    * Sacrificed 4mm of Y axis travel to allow for wall thicknesses to be reasonable with 15mm bores.
     * Added 1mm to the height to the left-right bridge and center bridge, added 1mm separation betweeen centers of the x-axis rails.
 2. Bridge Core is now One Piece.
-    * Captive M3 Hex Nuts allow the use of (6) M3x30 screws instead of the original BOM spec for (3) M3 threaded rods cut to length.
+    * Captive M3 Hex Nuts allow the use of (3) M3x30 and (3) M3x40 screws instead of the original BOM spec for (3) M3 threaded rods cut to length.
     * Linear bearing holes are _barely_ oversized, allowing for the M3x30 screws to act as compression mechanisms to hold the bearings.
     * Expansion / Compression cut for linear bearings. M3 screws holding together the bridge act as compression points to hold the bearings snug.
 3. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
 5. NEMA17 Stepper Motors
     * COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519)
     * Reinforced COREXY mounts, added extra connection point to vertical support. Eliminates the need for the secondary retainer.
+    * GT2 belt-driven Z-Axis. [140 Tooth 2GT-6](https://www.amazon.com/140-2GT-6-Timing-Belt-Closed-Loop/dp/B014QJBVOY/ref=sr_1_2?dchild=1&keywords=GT2-140+belt&qid=1634881957&qsid=135-9090533-9887601&sr=8-2&sres=B014QJBVOY%2CB014SLWP68%2CB07B5ZQY4W%2CB096D4NTVR%2CB07MWDMBWK%2CB01HM6DIA8%2CB07X9CHY23%2CB07KK86NYX%2CB0897CJKS1%2CB01IPYNQT4%2CB01E91K4N8%2CB08BJ2G2X6%2CB00XR0YJIO%2CB08974S1CC%2CB07JKT5BZQ%2CB00OZDJTKK) allows for swapping out gear ratios to adjust for different leadscrew pitches.
+6. TR8 Leadscrew (8mm pitch by default).
+    * I have a TR8x8 with four starts on hand, so I'm planning to use it. 
+    * Original ANT spec NEMA8 has a resolution of 0.003175mm, with a holding torque of 18mN,m. 
+        * Given a NEMA17 with 1.8-degree steps, and a driver set to quarter-stepping....
+        * Requires a 1:3 reduction.
+        * An 18 - 54 tooth pulley set should achieve 1:3, 1:3.5 can be done with 16 - 56, and is what I use on my 3d printers extruder.
 
 
 ## Original ANT Project resources
