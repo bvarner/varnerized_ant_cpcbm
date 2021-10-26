@@ -26,14 +26,15 @@ Things I did not 'skimp' on:
 * Linear rails. Experience from building 3d printers told me this was worth it.
 
 ## Varnerizations
-1. 8MM Linear Rods & LM8UU linear bearings. 
+1. Created a parametric (parameterized) reimplemenation of the bridge & head in Fusion 360. Fusion Archive and STEP export included.
+2. 8MM Linear Rods & LM8UU linear bearings. 
     * Sacrificed 4mm of Y axis travel to allow for wall thicknesses to be reasonable with 15mm bores.
     * Added 1mm to the height to the left-right bridge and center bridge, added 1mm separation betweeen centers of the x-axis rails.
-2. Bridge Core is now One Piece.
+3. Bridge Core is now One Piece.
     * Captive M3 Hex Nuts allow the use of (3) M3x30 and (3) M3x40 screws instead of the original BOM spec for (3) M3 threaded rods cut to length.
     * Linear bearing holes are _barely_ oversized, allowing for the M3x30 screws to act as compression mechanisms to hold the bearings.
     * Expansion / Compression cut for linear bearings. M3 screws holding together the bridge act as compression points to hold the bearings snug.
-3. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
+4. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
 5. NEMA17 Stepper Motors
     * COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519)
     * Reinforced COREXY mounts, added extra connection point to vertical support. Eliminates the need for the secondary retainer.
@@ -42,8 +43,11 @@ Things I did not 'skimp' on:
     * I have a TR8x8 with four starts on hand, so I'm planning to use it. 
     * Original ANT spec NEMA8 has a resolution of 0.003175mm, with a holding torque of 18mN,m. 
         * Given a NEMA17 with 1.8-degree steps, and a driver set to quarter-stepping....
-        * Requires a 1:3 reduction.
+        * Requires at least a 1:3 reduction and likely an anti-backlash system.
+        * Planning to use a 16:56 tooth pulley set (included in models).
         * An 18 - 54 tooth pulley set should achieve 1:3, 1:3.5 can be done with 16 - 56, and is what I use on my 3d printers extruder.
+7. Remodeled and removed unnecessary holes from the bridge left and right.
+8. Belt holder holds a captive nut.
 
 
 ## Original ANT Project resources
