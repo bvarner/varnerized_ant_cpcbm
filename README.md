@@ -36,18 +36,45 @@ Things I did not 'skimp' on:
     * Expansion / Compression cut for linear bearings. M3 screws holding together the bridge act as compression points to hold the bearings snug.
 4. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
 5. NEMA17 Stepper Motors
-    * COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519)
-    * Reinforced COREXY mounts, added extra connection point to vertical support. Eliminates the need for the secondary retainer.
+    * Reinforced COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519) eliminate the need for extra retainers from the thingiverse part.
     * GT2 belt-driven Z-Axis. [140 Tooth 2GT-6](https://www.amazon.com/140-2GT-6-Timing-Belt-Closed-Loop/dp/B014QJBVOY/ref=sr_1_2?dchild=1&keywords=GT2-140+belt&qid=1634881957&qsid=135-9090533-9887601&sr=8-2&sres=B014QJBVOY%2CB014SLWP68%2CB07B5ZQY4W%2CB096D4NTVR%2CB07MWDMBWK%2CB01HM6DIA8%2CB07X9CHY23%2CB07KK86NYX%2CB0897CJKS1%2CB01IPYNQT4%2CB01E91K4N8%2CB08BJ2G2X6%2CB00XR0YJIO%2CB08974S1CC%2CB07JKT5BZQ%2CB00OZDJTKK) allows for swapping out gear ratios to adjust for different leadscrew pitches.
-6. TR8 Leadscrew (8mm pitch by default).
-    * I have a TR8x8 with four starts on hand, so I'm planning to use it. 
-    * Original ANT spec NEMA8 has a resolution of 0.003175mm, with a holding torque of 18mN,m. 
-        * Given a NEMA17 with 1.8-degree steps, and a driver set to quarter-stepping....
-        * Requires at least a 1:3 reduction and likely an anti-backlash system.
-        * Planning to use a 16:56 tooth pulley set (included in models).
-        * An 18 - 54 tooth pulley set should achieve 1:3, 1:3.5 can be done with 16 - 56, and is what I use on my 3d printers extruder.
+6. TR8 Leadscrew (8mm pitch by default) for Z-Axis
 7. Remodeled and removed unnecessary holes from the bridge left and right.
-8. Belt holder holds a captive nut.
+8. Belt holder holds a captive nut to secure it to the bridge.
+
+
+### Z-Axis Analysis
+#### NEMA 8 ANT Head
+The "Beta" NEMA 8 stepper head design uses a 1.8-degree, 18mN/m (0.018N/cm) holding torque stepper paired with a 4mm leadscrew with a 0.635mm pitch, equating to a 0.003175mm linear resolution per step.
+(0.635mm / 200 steps = 0.003175mm). 
+
+The default configuration is to set this to half-stepping, doubling that resolution to:
+(0.635 / 400) = 0.0015875mm
+
+#### NEMA 17 Varnerized Head
+I have on hand several 17HS4401 steppers, which are 1.8-degree, 42N/cm holding torque, and TR8x8 leadscrews with 8mm pitch and anti-backlash nuts.
+Un-reduced, this equates to a linear resolution of 0.04mm.
+(8 / 200 = 0.04mm) 
+
+In order to increase the resolution, I've selected a 16:52 gear ratio and 140 tooth GT2 timing belt (which I had on hand from building a Skelestruder extruder for my printer).
+This brings the effective resolution to:
+(8 / (200 * 3.25)) = 0.012307692mm
+
+Enabling 1/4 stepping on the Z-axis motor brings this to:
+(8 / (200 * 3.25 * 4)) = 0.003076923mm -- slighty better than the half-stepped NEMA 8.
+
+Enabling 1/8 stepping on the Z-axis will yield:
+(8 / (200 * 3.25 * 8)) = 0.001538462mm resolution -- on par with the half-stepped NEMA 8 head.
+
+This equates to a theoretical steps/mm setting of: ~650 steps/mm
+
+Assuming a loss of torque of 29% at the motor shaft, the motor will have 29.82N/cm of holding torque.
+(42 - (42 * .29))
+At the lead-screw, this would be 3.25 times higher.
+(29.82 * 3.25) = 89.46N/cm
+
+#### Conclusion
+With 1/8th microstepping, a 1:3.25 gear ratio, a 8mm pitch leadscrew, and a stepper driver set to 1/8 stepping, we should exceed the resolution capability and torque output of the ANT's NEMA8 design.
 
 
 ## Original ANT Project resources
