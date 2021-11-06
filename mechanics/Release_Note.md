@@ -1,3 +1,27 @@
+# 06-11-2021
+New release The_Ant_version_1_1_0 with the new NEMA-8 motor as Z-axis. From now on, this head will be considered the stable version. List of updates:  
+
+	* Total_BOM_Ver_1_1_0.xlsx:  
+	    - Revisited version of the BOM that integrates the previous BOM with the new parts.
+
+	* head_4p3 replaces head_4p2(copied in release folder from beta one):  
+		- new head_4p3 that uses new Z-axis motor. See the BOM for the model of motor.  
+	  
+	* bridge_2p4_b replaces bridge_2p3_b(copied in release folder from beta one):  
+	    - new bridge needed to accomodate the anti-backlash nut of the new Z-axis motor.
+		
+	* pcb_lock_2p3 replaces pcb_lock_1p0(copied in release folder from beta one):  
+	    - the new pcb lock is more robust and adjustable.  
+		- integrates part of probe circuit.  
+		
+	* pcb_lock_frame_to_bed_connection_1p0 added(copied in release folder from beta one):  
+	    - new parts of the bed holder needed to integrate the new parts of probe circuit.  
+		
+	* cable_chain_1p0(copied in release folder from beta one):  
+	    - new parts to use drag chain for the cable, substituting the spiral coil used previously.  
+		
+	
+
 # 21-07-2019
 New parts released, list of updates:
 

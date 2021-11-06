@@ -4,9 +4,6 @@
 
 [![Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-
-## News[31-12-2018]: The complete release of the mechanical drawings of the machine are OUT!!! Informative videos will follow as soon as possible.
-
 ## Youtube Channel: [The Ant PCB Maker](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
 
 ## Instagram : [The Ant Team](https://www.instagram.com/the_ant_team/)
