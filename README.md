@@ -10,7 +10,7 @@ In making my decisions about what to 'Varnerize' vs. purchase and stick to the p
 * Functional Accuracy. Modifications will prioritize accuracy over workable size. I expect some modifications to reduce the work area.
 * Build cost. If I can cut the cost to build by 1/3rd but still retain 80% of the work area and feature set -- then that's a very Varner thing to do.
 
-Specific changes I'll be investigating:
+### Things I planned to investigate:
 
 * NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8. I've seen [this top-mounted NEMA 11 modification](https://jplattel.nl/post/2021-03-07-improving-the-ant-head/) which has supplied a surprising amount of 'idea fuel'.
 * Bridge segmenting and joinery.
@@ -20,12 +20,7 @@ Specific changes I'll be investigating:
 * Overhangs in some parts (which seem to be dimensionally important) should have 'snap-off' supports.
 * Use of a TR8x8 leadscrew, along with a GT2 closed loop belt and pulley system for Z-Axis motion. I have a few of these belts laying around from converting my prusa-style printer to a [Skelestruder](https://jltxplore.dozuki.com/c/Skelestruder_for_Prusa_MK3) extruder.
 
-
-Things I did not 'skimp' on:
-* MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
-* Linear rails. Experience from building 3d printers told me this was worth it.
-
-## Varnerizations
+## Finalized Varnerizations
 1. Created a parametric (parameterized) reimplemenation of the bridge & head in Fusion 360. Fusion Archive and STEP export included.
 2. 8MM Linear Rods & LM8UU linear bearings. 
     * Sacrificed 4mm of Y axis travel to allow for wall thicknesses to be reasonable with 15mm bores.
@@ -38,10 +33,21 @@ Things I did not 'skimp' on:
 5. NEMA17 Stepper Motors
     * Reinforced COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519) eliminate the need for extra retainers from the thingiverse part.
     * GT2 belt-driven Z-Axis. [140 Tooth 2GT-6](https://www.amazon.com/140-2GT-6-Timing-Belt-Closed-Loop/dp/B014QJBVOY/ref=sr_1_2?dchild=1&keywords=GT2-140+belt&qid=1634881957&qsid=135-9090533-9887601&sr=8-2&sres=B014QJBVOY%2CB014SLWP68%2CB07B5ZQY4W%2CB096D4NTVR%2CB07MWDMBWK%2CB01HM6DIA8%2CB07X9CHY23%2CB07KK86NYX%2CB0897CJKS1%2CB01IPYNQT4%2CB01E91K4N8%2CB08BJ2G2X6%2CB00XR0YJIO%2CB08974S1CC%2CB07JKT5BZQ%2CB00OZDJTKK) allows for swapping out gear ratios to adjust for different leadscrew pitches.
-6. TR8 Leadscrew (8mm pitch by default) for Z-Axis
+6. TR8 Leadscrew (with 8mm pitch) for Z-Axis
 7. Remodeled and removed unnecessary holes from the bridge left and right.
 8. Belt holder holds a captive nut to secure it to the bridge.
+9. Easily Obtainable [D2826 1000kv](https://www.amazon.com/dp/B089YPSYD6?psc=1&ref=ppx_yo2_dt_b_product_details) BLDC motor.
+    * 3d-printed TPU (shore 95A) drive belt.
+    * 3d-printed PolyCarbonate drive pulleys. (Eliminated the stop-collar on the spindle)
+10. Use of an open cable chain, and necessary mounts to the bridge & electronics case.
+    * Use of 40mm screws on the electronics case, further customizations to make it easier to fit panel-mount through-hole jacks.
+    * modified the electronics panel to use a rectangular switch and a XT-60H connector for power.
+11. 3d printed GT2 pulleys.
 
+### Things I did not 'skimp' on:
+* MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
+* Linear rails. Experience from building 3d printers told me this was worth it.
+* LM8UU Drylin Bushings. Because LM8UU ball bearings that are affordable are rubbish. I've been using drylin on my 3d printer for a year or so now, and it's so much quieter, and has so much less lash that it's just worth it.
 
 ### Z-Axis Analysis
 #### NEMA 8 ANT Head
