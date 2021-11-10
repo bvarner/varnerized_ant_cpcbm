@@ -12,7 +12,7 @@ As a hobbiest, my primary concerns are not asthetics as much as cost and compone
     * Captive M3 Hex Nuts allow the use of (3) M3x30 and (3) M3x40 screws instead of the original BOM spec for (3) M3 threaded rods cut to length.
     * Linear bearing holes are _barely_ oversized, allowing for the M3x30 screws to act as compression mechanisms to hold the bearings.
     * Expansion / Compression cut for linear bearings. M3 screws holding together the bridge act as compression points to hold the bearings snug.
-4. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of a pull resistors.
+4. Use of sub-mini microswitches for limit-switches. No need to purchase specific orientation limit switch modules, especially when the connections to the grbl board aren't making use of pull resistors.
 5. NEMA17 Stepper Motors
     * Reinforced COREXY Mounts based upon [this design on Thingiverse](https://www.thingiverse.com/thing:3590519) eliminate the need for extra retainers from the thingiverse part.
     * GT2 belt-driven Z-Axis. [140 Tooth 2GT-6](https://www.amazon.com/140-2GT-6-Timing-Belt-Closed-Loop/dp/B014QJBVOY/ref=sr_1_2?dchild=1&keywords=GT2-140+belt&qid=1634881957&qsid=135-9090533-9887601&sr=8-2&sres=B014QJBVOY%2CB014SLWP68%2CB07B5ZQY4W%2CB096D4NTVR%2CB07MWDMBWK%2CB01HM6DIA8%2CB07X9CHY23%2CB07KK86NYX%2CB0897CJKS1%2CB01IPYNQT4%2CB01E91K4N8%2CB08BJ2G2X6%2CB00XR0YJIO%2CB08974S1CC%2CB07JKT5BZQ%2CB00OZDJTKK) allows for swapping out gear ratios to adjust for different leadscrew pitches.
@@ -83,7 +83,7 @@ At the lead-screw, this would be 3.25 times higher.
 (29.82 * 3.25) = 89.46N/cm
 
 **Conclusion**
-With 1/8th microstepping, a 1:3.25 gear ratio, a 8mm pitch leadscrew, and a stepper driver set to 1/8 stepping, we will exceed the repeatable resolution and torque of the ANT's NEMA8 head design.
+With 1/8th microstepping, a 1:3.25 gear ratio, and an 8mm pitch leadscrew powered by a 17HS4401 NEMA17, we will exceed the repeatable resolution and torque of the ANT's NEMA8 head design.
 Furthermore this part selection will enable using parts I have on hand, cutting the cost to build the head unit considerably.
 
 
