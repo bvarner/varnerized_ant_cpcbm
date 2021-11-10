@@ -1,26 +1,9 @@
 # Varnerized ANT Compact PCB Maker
 
-Since first coming across the ANT project, I've wanted to make one. However there are some esoteric hardware choices in the base project that seem to prioritize form over function and cost.
+Since first coming across the [ANT](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA) project, I've wanted to make one. However there are some esoteric hardware choices in the base project that seem to prioritize form over function and cost.
 As a hobbiest, my primary concerns are not asthetics as much as cost and component availability.
 
-In making my decisions about what to 'Varnerize' vs. purchase and stick to the plans I'll be weighing things based upon:
-
-* What's already in my component drawers or easily obtainable given current supply chain and production limitations. Prioritize functional available parts over form.
-* What I can reasonably 3d-print and combine with something else already in my component drawers. Prioritize self fabrication over purchasing produced parts.
-* Functional Accuracy. Modifications will prioritize accuracy over workable size. I expect some modifications to reduce the work area.
-* Build cost. If I can cut the cost to build by 1/3rd but still retain 80% of the work area and feature set -- then that's a very Varner thing to do.
-
-### Things I planned to investigate:
-
-* NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8. I've seen [this top-mounted NEMA 11 modification](https://jplattel.nl/post/2021-03-07-improving-the-ant-head/) which has supplied a surprising amount of 'idea fuel'.
-* Bridge segmenting and joinery.
-* Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board + GRBL board.
-* 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
-* 3d printable pulleys based around 683ZZ bearings. As of 10/2021 I was able to obtain a 20 pack of these bearings for $10. Sourcing the appropirate number of 16-tooth pulleys would have cost more than the 20 pack of bearings.
-* Overhangs in some parts (which seem to be dimensionally important) should have 'snap-off' supports.
-* Use of a TR8x8 leadscrew, along with a GT2 closed loop belt and pulley system for Z-Axis motion. I have a few of these belts laying around from converting my prusa-style printer to a [Skelestruder](https://jltxplore.dozuki.com/c/Skelestruder_for_Prusa_MK3) extruder.
-
-## Finalized Varnerizations
+## Varnerizations
 1. Created a parametric (parameterized) reimplemenation of the bridge & head in Fusion 360. Fusion Archive and STEP export included.
 2. 8MM Linear Rods & LM8UU linear bearings. 
     * Sacrificed 4mm of Y axis travel to allow for wall thicknesses to be reasonable with 15mm bores.
@@ -44,20 +27,40 @@ In making my decisions about what to 'Varnerize' vs. purchase and stick to the p
     * modified the electronics panel to use a rectangular switch and a XT-60H connector for power.
 11. 3d printed GT2 pulleys.
 
-### Things I did not 'skimp' on:
+### Analysis and Evaulation Guidelines
+
+In making my decisions about what to 'Varnerize' vs. purchase and stick to the plans I weighed things based upon:
+
+* What's already in my component drawers or easily obtainable given current supply chain and production limitations. Prioritized functional available parts over form.
+* What I can reasonably 3d-print and combine with something else already in my component drawers. Prioritized self fabrication over purchasing produced parts.
+* Functional Accuracy. Modifications will prioritize accuracy over workable size. I was willing to reduce the work area. I didn't have to.
+* Build cost.
+
+### Specific investigations undertaken
+
+* NEMA17 steppers in place of the NEMA11s, and in the case of the head, in place of the NEMA 8. I've seen [this top-mounted NEMA 11 modification](https://jplattel.nl/post/2021-03-07-improving-the-ant-head/) which has supplied a surprising amount of 'idea fuel'.
+* Bridge segmenting and joinery.
+* Use of an Arduino Uno R3 + GRBL board instead of the STM32 based Arm board + GRBL board.
+* 8mm Rods and LM8UU bearings instead of the 6mm rods and LM6UU bearings.
+* 3d printable pulleys based around 683ZZ bearings. As of 10/2021 I was able to obtain a 20 pack of these bearings for $10. Sourcing the appropirate number of 16-tooth pulleys would have cost more than the 20 pack of bearings.
+* Overhangs in some parts (which seem to be dimensionally important) should have 'snap-off' supports.
+* Use of a TR8x8 leadscrew, along with a GT2 closed loop belt and pulley system for Z-Axis motion. I have a few of these belts laying around from converting my prusa-style printer to a [Skelestruder](https://jltxplore.dozuki.com/c/Skelestruder_for_Prusa_MK3) extruder.
+
+### Purchased items I did not 'skimp' on:
 * MakerBeam! I bought the starter kit, and the tee nuts. I _did_ investigate printing the tee nuts and had workable facimilies printed with a 0.4mm nozzle but was not confident about the long-term use of the plastic tee-nuts.
 * Linear rails. Experience from building 3d printers told me this was worth it.
 * LM8UU Drylin Bushings. Because LM8UU ball bearings that are affordable are rubbish. I've been using drylin on my 3d printer for a year or so now, and it's so much quieter, and has so much less lash that it's just worth it.
+* Mochu angular contact bearings & CL6-ER8M spindle.
 
-### Z-Axis Analysis
-#### NEMA 8 ANT Head
+#### Z-Axis Comparative Analysis
+##### NEMA 8 ANT Head
 The "Beta" NEMA 8 stepper head design uses a 1.8-degree, 18mN/m (0.018N/cm) holding torque stepper paired with a 4mm leadscrew with a 0.635mm pitch, equating to a 0.003175mm linear resolution per step.
 (0.635mm / 200 steps = 0.003175mm). 
 
-The default configuration is to set this to half-stepping, doubling that resolution to:
+The default configuration is to set this to half-stepping, doubling the default ANT resolution to:
 (0.635 / 400) = 0.0015875mm
 
-#### NEMA 17 Varnerized Head
+##### NEMA 17 Varnerized Head
 I have on hand several 17HS4401 steppers, which are 1.8-degree, 42N/cm holding torque, and TR8x8 leadscrews with 8mm pitch and anti-backlash nuts.
 Un-reduced, this equates to a linear resolution of 0.04mm.
 (8 / 200 = 0.04mm) 
@@ -79,8 +82,9 @@ Assuming a loss of torque of 29% at the motor shaft, the motor will have 29.82N/
 At the lead-screw, this would be 3.25 times higher.
 (29.82 * 3.25) = 89.46N/cm
 
-#### Conclusion
-With 1/8th microstepping, a 1:3.25 gear ratio, a 8mm pitch leadscrew, and a stepper driver set to 1/8 stepping, we should exceed the resolution capability and torque output of the ANT's NEMA8 design.
+**Conclusion**
+With 1/8th microstepping, a 1:3.25 gear ratio, a 8mm pitch leadscrew, and a stepper driver set to 1/8 stepping, we will exceed the repeatable resolution and torque of the ANT's NEMA8 head design.
+Furthermore this part selection will enable using parts I have on hand, cutting the cost to build the head unit considerably.
 
 
 ## Original ANT Project resources
