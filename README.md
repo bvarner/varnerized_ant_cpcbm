@@ -82,7 +82,8 @@ Assuming a loss of torque of 29% at the motor shaft, the motor will have 29.82N/
 At the lead-screw, this would be 3.25 times higher.
 (29.82 * 3.25) = 89.46N/cm
 
-**Conclusion**
+**Conclusion**:
+
 With 1/8th microstepping, a 1:3.25 gear ratio, and an 8mm pitch leadscrew powered by a 17HS4401 NEMA17, we will exceed the repeatable resolution and torque of the ANT's NEMA8 head design.
 Furthermore this part selection will enable using parts I have on hand, cutting the cost to build the head unit considerably.
 
