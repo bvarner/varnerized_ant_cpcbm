@@ -1,3 +1,6 @@
+# 06-11-2021
+Removed all the beta parts that are now released in the new stable version The_Ant_version_1_1_0, and the old beta developments that were already obsolete.  
+
 # 06-02-2021
 Added <b>head_4p3</b>, an alternative head that uses the NEMA8.  
 This head is meant to be used with the released <b>bridge_2p4_b</b> in which there is the anti backlash nut coupled with the motor.  

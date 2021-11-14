@@ -89,12 +89,6 @@ Furthermore this part selection will enable using parts I have on hand, cutting 
 
 
 ## Original ANT Project resources
-* Bitbucket: [CPCBM](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/)
-* Youtube Channel: [The Ant PCB Maker](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
-* Instagram : [The Ant Team](https://www.instagram.com/the_ant_team/)
-* Reddit: [r/TheANT](https://www.reddit.com/r/TheANT/)
-
-### Contact us at: the.ant.pcb@gmail.com or compact.pcb.maker.team@gmail.com
 
 [![alternativetext](https://bitbucket.org/compactpcbmaker/cpcbm/raw/6ffa7937e43088e09a562490447c1323f4919ad3/resources/the_ant_logo/the_ant_logo_small.png =50x20)](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
 
