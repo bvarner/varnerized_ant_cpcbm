@@ -12,8 +12,7 @@
 
 ## Contact us at: the.ant.pcb@gmail.com or compact.pcb.maker.team@gmail.com
 
-[![logo](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/resources/the_ant_logo/the_ant_logo_small.png =50x20)](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)
-
+[![logo](https://bitbucket.org/compactpcbmaker/cpcbm/src/master/resources/the_ant_logo/the_ant_logo_small.png){height=50 width=20}](https://www.youtube.com/channel/UCX44z-SSL7LzcB4xxgUdHHA)  
 
 The Ant is a project to develop a CNC machine able to realize single and double-layered printed circuit boards.
 
