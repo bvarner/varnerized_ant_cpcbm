@@ -4,7 +4,7 @@ Since first coming across the [ANT](https://www.youtube.com/channel/UCX44z-SSL7L
 As a hobbiest, my primary concerns are not asthetics as much as cost and component availability.
 
 ## Varnerizations
-1. Created a parametric (parameterized) reimplemenation of the bridge & head in Fusion 360. Fusion Archive and STEP export included.
+1. Created a parametric (parameterized) reimplemenation of the [bridge & head in Fusion 360](https://a360.co/3jG9QqE). Fusion Archive and STEP export included.
 2. 8MM Linear Rods & LM8UU linear bearings. 
     * Sacrificed 4mm of Y axis travel to allow for wall thicknesses to be reasonable with 15mm bores.
     * Added 1mm to the height to the left-right bridge and center bridge, added 1mm separation betweeen centers of the x-axis rails.
