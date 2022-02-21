@@ -77,15 +77,16 @@ Enabling 1/8 stepping on the Z-axis will yield:
 
 This equates to a theoretical steps/mm setting of: ~650 steps/mm
 
-Assuming a loss of torque of 29% at the motor shaft, the motor will have 29.82N/cm of holding torque.
-(42 - (42 * .29))
+Assuming a loss of torque of 29% at the motor shaft (due to microstepping):
+At the mottor shaft, the motor provides 29.82N/cm of holding torque.
+(42 - (42 * 0.29))
 At the lead-screw, this would be 3.25 times higher.
 (29.82 * 3.25) = 89.46N/cm
 
 **Conclusion**:
 
-With 1/8th microstepping, a 1:3.25 gear ratio, and an 8mm pitch leadscrew powered by a 17HS4401 NEMA17, we will exceed the repeatable resolution and torque of the ANT's NEMA8 head design.
-Furthermore this part selection will enable using parts I have on hand, cutting the cost to build the head unit considerably.
+__With 1/8th microstepping, a 1:3.25 gear ratio, and an 8mm pitch leadscrew powered by a 17HS4401 NEMA17, we will exceed the repeatable resolution and torque of the ANT's NEMA8 head design.
+Furthermore this part selection will enable using parts I have on hand, cutting the cost to build the head unit considerably.__
 
 
 ## Original ANT Project resources
