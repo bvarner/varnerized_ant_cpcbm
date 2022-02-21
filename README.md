@@ -26,6 +26,12 @@ As a hobbiest, my primary concerns are not asthetics as much as cost and compone
     * Use of 40mm screws on the electronics case, further customizations to make it easier to fit panel-mount through-hole jacks.
     * modified the electronics panel to use a rectangular switch and a XT-60H connector for power.
 11. 3d printed GT2 pulleys.
+    * I have since switched to machine pulleys, as I was diagnosing some movement precision issues. Changing to machined pulleys had no noticeable effect. My issues were elsewhere.
+12. PCBLock <-> Frame connection.
+    * Changed orientation of the contact strips to vertical -- allowing for more 'slop' between alignment in both the x, and z axis.
+    * Contact is no longer dependent upon the thickness of the spoil-board, so thinner / thicker board will still contact well.
+    * I used 4mm strips of 0.15mm thick nickel strip. (cut from an 8mm wide strip commonly used in 18650 battery packs)
+
 
 ### Analysis and Evaulation Guidelines
 
