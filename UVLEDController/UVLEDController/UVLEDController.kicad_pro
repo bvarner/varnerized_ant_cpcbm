@@ -399,8 +399,7 @@
         "microvia_drill": 0.1,
         "name": "LEDs",
         "nets": [
-          "Net-(A1-Pad30)",
-          "Net-(J1-Pad2)"
+          "Net-(A1-Pad30)"
         ],
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",

@@ -986,7 +986,7 @@
   (symbol (lib_id "Connector:Screw_Terminal_01x02") (at 60.96 13.97 90) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid 43944736-18ad-462d-858d-dfa0358b53b3)
-    (property "Reference" "J2" (id 0) (at 65.532 13.1353 90)
+    (property "Reference" "J2-PWR1" (id 0) (at 65.532 13.1353 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Value" "Screw_Terminal_01x02" (id 1) (at 65.532 15.6722 90)
@@ -1059,7 +1059,7 @@
   (symbol (lib_id "Connector:Screw_Terminal_01x02") (at 20.32 72.39 0) (mirror y) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid b199a8ce-ac04-4537-a164-631a8a6e80cd)
-    (property "Reference" "J1" (id 0) (at 20.32 67.4202 0))
+    (property "Reference" "J1-LED1" (id 0) (at 20.32 67.4202 0))
     (property "Value" "Screw_Terminal_01x02" (id 1) (at 20.32 69.9571 0))
     (property "Footprint" "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal" (id 2) (at 20.32 72.39 0)
       (effects (font (size 1.27 1.27)) hide)
@@ -1244,10 +1244,10 @@
       (reference "H4") (unit 1) (value "MountingHole") (footprint "MountingHole:MountingHole_3mm")
     )
     (path "/b199a8ce-ac04-4537-a164-631a8a6e80cd"
-      (reference "J1") (unit 1) (value "Screw_Terminal_01x02") (footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal")
+      (reference "J1-LED1") (unit 1) (value "Screw_Terminal_01x02") (footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal")
     )
     (path "/43944736-18ad-462d-858d-dfa0358b53b3"
-      (reference "J2") (unit 1) (value "Screw_Terminal_01x02") (footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal")
+      (reference "J2-PWR1") (unit 1) (value "Screw_Terminal_01x02") (footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-5.0-H_1x02_P5.00mm_Horizontal")
     )
     (path "/24d1c1f3-5055-473a-85cc-45ac6541ea90"
       (reference "J3") (unit 1) (value "Conn_01x04_Male") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Horizontal")
