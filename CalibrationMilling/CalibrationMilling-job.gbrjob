@@ -3,19 +3,19 @@
     "GenerationSoftware": {
       "Vendor": "KiCad",
       "Application": "Pcbnew",
-      "Version": "6.0.7-f9a2dced07~116~ubuntu22.04.1"
+      "Version": "6.0.6-3a73a75311~116~ubuntu22.04.1"
     },
-    "CreationDate": "2022-08-01T22:09:32-04:00"
+    "CreationDate": "2022-07-23T23:19:18-04:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
-      "Name": "UVLEDController",
-      "GUID": "55564c45-4443-46f6-9e74-726f6c6c6572",
+      "Name": "CalibrationMilling",
+      "GUID": "43616c69-6272-4617-9469-6f6e4d696c6c",
       "Revision": "rev?"
     },
     "Size": {
-      "X": 80.1,
-      "Y": 56.1
+      "X": 0.0,
+      "Y": 0.0
     },
     "LayerNumber": 2,
     "BoardThickness": 1.6,
@@ -24,27 +24,22 @@
   "DesignRules": [
     {
       "Layers": "Outer",
-      "PadToPad": 0.0,
-      "PadToTrack": 0.0,
+      "PadToPad": 0.2,
+      "PadToTrack": 0.2,
       "TrackToTrack": 0.2,
-      "MinLineWidth": 0.45,
-      "TrackToRegion": 0.508,
-      "RegionToRegion": 0.508
+      "MinLineWidth": 0.0254,
+      "TrackToRegion": 0.2,
+      "RegionToRegion": 0.2
     }
   ],
   "FilesAttributes": [
     {
-      "Path": "UVLEDController-F_Cu.gbr",
+      "Path": "CalibrationMilling-F_Cu.gbr",
       "FileFunction": "Copper,L1,Top",
       "FilePolarity": "Positive"
     },
     {
-      "Path": "UVLEDController-F_Paste.gbr",
-      "FileFunction": "SolderPaste,Top",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "UVLEDController-Edge_Cuts.gbr",
+      "Path": "CalibrationMilling-Edge_Cuts.gbr",
       "FileFunction": "Profile",
       "FilePolarity": "Positive"
     }
@@ -60,29 +55,24 @@
     },
     {
       "Type": "SolderMask",
-      "Thickness": 0.01,
       "Name": "Top Solder Mask"
     },
     {
       "Type": "Copper",
-      "Thickness": 0.035,
       "Name": "F.Cu"
     },
     {
       "Type": "Dielectric",
-      "Thickness": 1.51,
       "Material": "FR4",
       "Name": "F.Cu/B.Cu",
       "Notes": "Type: dielectric layer 1 (from F.Cu to B.Cu)"
     },
     {
       "Type": "Copper",
-      "Thickness": 0.035,
       "Name": "B.Cu"
     },
     {
       "Type": "SolderMask",
-      "Thickness": 0.01,
       "Name": "Bottom Solder Mask"
     },
     {
